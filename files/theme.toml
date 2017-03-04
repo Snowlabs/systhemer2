@@ -1,3 +1,6 @@
+[self]
+i3wm_file_path = "./files/i3_dummy"
+
 [theme]
 titlebar = "#123123"
 background = "#000000"

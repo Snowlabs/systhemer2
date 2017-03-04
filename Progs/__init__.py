@@ -1,5 +1,12 @@
-from .i3wm import i3wm as i3wm
+from .i3wm import i3wm
+from ._self import _self
 
-prog_defs = [
-    i3wm('./files/i3_dummy', 'i3wm'),
-]
+prog_defs = []
+
+
+def setup(Settings):
+    global prog_defs
+    prog_defs = [
+        _self(Settings),
+        i3wm(Settings),
+    ]

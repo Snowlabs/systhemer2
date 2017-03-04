@@ -1,44 +1,62 @@
 #! /usr/bin/env python3
 """Systhemer2.0 (Now in python!)"""
-import sys
 from logger import setup_logger
 import toml
 import Progs
 
-THEME_FILE_PATH = './files/theme.toml'
-VERBOSE_MODE = True
+
+class Settings:
+    theme_file_path = './files/theme.toml'
+
 
 def convert_toml(path):
-    """takes path to toml file and return dictionary"""
+    """Takes path to toml file and return dictionary"""
     with open(path) as toml_file:
         return toml.loads(toml_file.read())
 
-class Main(object):
-    """main object class"""
-    def __init__(self):
-        self.logger = setup_logger()
-        self.theme = None
-    def run(self):
-        """run program"""
-        self.logger.info('loading theme file at: \'%s\'...', THEME_FILE_PATH)
 
-        try:
-            self.theme = convert_toml(THEME_FILE_PATH)
-        except toml.TomlDecodeError as e:
-            self.logger.critical('Syntax error in %s: %s', THEME_FILE_PATH, e)
-            exit(1)
+def run():
+    """run program"""
+    # initialize
+    logger = setup_logger()
+    Progs.setup(Settings)
 
-        self.logger.debug('theme file data: %s', self.theme)
+    # load toml file
+    logger.info('Loading theme/config file at: \'%s\'...',
+                Settings.theme_file_path)
+    try:
+        theme = convert_toml(Settings.theme_file_path)
+    except toml.TomlDecodeError as e:
+        logger.critical('Syntax error in %s: %s',
+                        Settings.theme_file_path, e)
+        exit(1)
 
-        for prog_def in Progs.prog_defs:
-            self.logger.info('applying theme for program: \'%s\'', prog_def.name)
-            for key in self.theme['theme']:
-                prog_def.set(key, self.theme['theme'][key])
-            self.logger.info('writing to config file for program: \'%s\'', prog_def.name)
-            prog_def.save()
+        logger.debug('Theme file data: %s', theme)
+    # toml file loaded
+    # initialized
 
+    # Apply theme
+    # loop though program definitions
+    for prog_def in Progs.prog_defs:
+        # apply theme to curent program
+        logger.info('Applying theme for program: \'%s\'',
+                    prog_def.name)
+
+        # loop through sections
+        for section in theme:
+            logger.debug('Applying section: %s', section)
+            # loop through keys in current section
+            for key in theme[section]:
+                # set(key, value)
+                prog_def.set(key, theme[section][key], section)
+
+        # save theme for current program
+        logger.info('Writing to config file for program: \'%s\'',
+                    prog_def.name)
+        prog_def.save()
+    # theme applied
 
 
 if __name__ == '__main__':
-    Main().run()
-
+    run()
+                    
