@@ -1,0 +1,4 @@
+[theme]
+titlebar = "#123123"
+background = "#000000"
+focused-text = "#abc123"
