@@ -46,13 +46,13 @@ def run():
         logger.info('Applying theme for program: \'%s\'',
                     prog_def.name)
 
-        # loop through sections
-        for section in theme:
-            logger.debug('Applying section: %s', section)
-            # loop through keys in current section
-            for key in theme[section]:
+        # loop through rules
+        for rule in theme:
+            logger.debug('Applying rule: %s', rule)
+            # loop through keys in current rule
+            for key in theme[rule]:
                 # set(key, value)
-                prog_def.set(key, theme[section][key], section)
+                prog_def.set(key, theme[rule][key], rule)
 
         # save theme for current program
         logger.info('Writing to config file for program: \'%s\'',
