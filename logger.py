@@ -2,7 +2,7 @@ import logging
 from colorlog import ColoredFormatter
 
 
-def setup_logger():
+def setup_logger(Settings):
     fileHandler = logging.FileHandler('systhemer.log', mode='w')
     consHandler = logging.StreamHandler()
     fileFormatter = logging.Formatter(
@@ -33,9 +33,10 @@ def setup_logger():
             }
         })
     fileHandler.setLevel(logging.DEBUG)
-    consHandler.setLevel(logging.DEBUG)
+    consHandler.setLevel(Settings.verbose)
     fileHandler.setFormatter(fileFormatter)
-    consHandler.setFormatter(consFormatter)
+    consHandler.setFormatter(consFormatter if not Settings.no_colorlog
+                             else fileFormatter)
 
     logger = logging.getLogger('Systhemer')
     logger.setLevel(logging.DEBUG)

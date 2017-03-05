@@ -6,7 +6,8 @@ import Progs
 
 
 class Settings:
-    theme_file_path = './files/theme.toml'
+    pass
+    # theme_file_path = './files/theme.toml'
 
 
 def convert_toml(path):
@@ -18,7 +19,7 @@ def convert_toml(path):
 def run():
     """run program"""
     # initialize
-    logger = setup_logger()
+    logger = setup_logger(Settings)
     Progs.setup(Settings)
 
     # load toml file
@@ -30,8 +31,11 @@ def run():
         logger.critical('Syntax error in %s: %s',
                         Settings.theme_file_path, e)
         exit(1)
+    except FileNotFoundError:
+        logger.critical('File %s not found!', Settings.theme_file_path)
+        exit(1)
 
-        logger.debug('Theme file data: %s', theme)
+    logger.debug('Theme file data: %s', theme)
     # toml file loaded
     # initialized
 
@@ -57,6 +61,29 @@ def run():
     # theme applied
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Systhemer: System theming'
+                                     'utility designed for ease of sharing')
+    parser.add_argument('-v',
+                        '--verbose',
+                        help='set level of verbosity',
+                        action='count',
+                        default=0)
+    parser.add_argument('-nc',
+                        '--no-colorlog',
+                        help='disable colorlog',
+                        action='store_true')
+    parser.add_argument('path',
+                        help='path to theme file',
+                        action='store')
+
+    parser.parse_args(namespace=Settings)
+    # {nothing} : WARNING, -v : INFO, -vv : DEBUG, -v*{anything more}, DEBUG
+    Settings.verbose = 30 - Settings.verbose*10
+    Settings.theme_file_path = Settings.path
+
+
 if __name__ == '__main__':
+    import argparse
+    parse_args()
     run()
-                    
