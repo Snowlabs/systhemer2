@@ -1,6 +1,7 @@
 """Template module fro program definitions"""
 import logging
 import re
+from .common import Rule, Section
 
 
 class ProgDef(object):
@@ -62,16 +63,18 @@ class ProgDef(object):
         key_found = False
 
         # cycle through rules
-        for regex in self.config:
+        for rule in self.config:
+            if not isinstance(rule, Rule):
+                continue
 
             # check if key exists in the current rule
-            if key in self.config[regex]:
+            if key in rule.keys:
 
                 key_found = True
                 self.logger.debug('Key: \'%s\' Found!', key)
 
-                match = re.search(regex, self.filebuff)
-                sub_id = self.config[regex][key]
+                match = re.search(rule.rule, self.filebuff)
+                sub_id = rule.keys[key]
                 self.filebuff = self.filebuff[:match.start(sub_id)] \
                     + value \
                     + self.filebuff[match.end(sub_id):]
