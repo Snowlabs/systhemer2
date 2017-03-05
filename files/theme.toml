@@ -3,6 +3,7 @@
 # with get loaded with higher precedence than the theme files
 [self]
 i3wm_file_path = "./files/i3_dummy"
+i3wm_out_file_path = "./files/i3_dummy.out"
 
 [theme]
 titlebar = "#123123"

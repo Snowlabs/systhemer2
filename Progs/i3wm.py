@@ -45,9 +45,9 @@ class i3wm(ProgDef):
                 'background': 1},
         }
 
-    def save(self):
+    def save(self):  # saves in a new file for testing purposes
         """save file"""
-
+        outfile = self.get_setting('i3wm_out_file_path')
         self.logger.info('Saving...')
-        with open('./files/i3_dummy.out', 'w') as newfile:
+        with open(outfile, 'w') as newfile:
             newfile.write(self.filebuff)

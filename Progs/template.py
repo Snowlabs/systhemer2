@@ -26,23 +26,35 @@ class ProgDef(object):
         """this method must be implemented"""
         raise NotImplementedError()
 
+    def get_setting(self, setting, critical=True, msg=None):
+        """Get a setting from self.Settings"""
+        value = getattr(self.Settings, setting, None)
+        if value is None:
+            msg = msg if msg is not None else \
+                  'Setting \'%s\' not set!' % setting
+            if critical:
+                self.logger.critical(msg)
+                exit(1)
+            else:
+                self.logger.error(msg + ' Returning \'None\'.', setting)
+                return None
+        return value
+
     def get_file_buffer(self):
         """Checks if filebuffer exists. If not, one is created."""
         # if filebuffer doesn't exist
         if self.filebuff is None:
             # get file path from Settings
             file_path = getattr(self.Settings, self.name + '_file_path', None)
+            file_path = self.get_setting(self.name + '_file_path',
+                                         msg='File path for: \'%s\' not set!'
+                                         ' Please set a value for option: %s'
+                                         % (self.name,
+                                            self.name + '_file_path'),
+                                         critical=True)
 
-            # if file path is defined in settings
-            if file_path is not None:
-                # create the filebuffer
-                with open(file_path) as configfile:
-                    self.filebuff = configfile.read()
-            else:
-                self.logger.critical('File path for: \'%s\' not set!'
-                                     'Please set a value for option: %s',
-                                     self.name, self.name + '_file_path')
-                exit(1)
+            with open(file_path) as configfile:
+                self.filebuff = configfile.read()
 
     def set(self, key, value, section):
         """set a value to a certain key"""
