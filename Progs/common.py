@@ -1,5 +1,4 @@
 
-
 class ConfigElement(object):
     parent = None
 

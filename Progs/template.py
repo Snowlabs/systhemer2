@@ -63,17 +63,29 @@ class ProgDef(object):
         array of all rules that contain 'key'
         """
         out = []
-        for rule in rules:
-            if isinstance(rule, Section):
-                out.extend(self.find_rules(key, rule.rules))
+        # scan rules for key and when found add key to output array
+        for rule_obj in rules:
+            # calls itself for scanning section rules for key
+            if isinstance(rule_obj, Section):
+                out.extend(self.find_rules(key, rule_obj.rules))
+            # check if rule_obj contains key
+            elif isinstance(rule_obj, Rule):
+                if key in rule_obj.keys:
+                    out.append(rule_obj)
+            # invalid type
             else:
-                if key in rule.keys:
-                    out.append(rule)
+                self.logger.critical('Member or descendant of self.config'
+                                     ' has invalid type: \'%s\'',
+                                     rule_obj.__class__)
+                exit(1)
         return out
 
     def set(self, key, value, section):
         """set a value to a certain key"""
+        # Check if filebuffer exists. If not, create one
         self.get_file_buffer()
+
+        # get array of rules that contain 'key'
         rules = self.find_rules(key, self.config)
         if rules != []:
             self.logger.debug('Key: \'%s\' Found! (found %s times)',
@@ -81,14 +93,14 @@ class ProgDef(object):
         else:
             self.logger.debug('Key: \'%s\' Not found', key)
 
-        for rule in rules:
-            match = re.search(rule.rule, self.filebuff)
-            sub_id = rule.keys[key]
+        # go through rules applying 'value' for 'key'
+        for rule_obj in rules:
+            match = re.search(rule_obj.rule, self.filebuff)
+            sub_id = rule_obj.keys[key]
             self.filebuff = self.filebuff[:match.start(sub_id)] \
                 + value \
                 + self.filebuff[match.end(sub_id):]
             self.logger.debug('Value set: %s <- %s', key, value)
-
 
     def save(self):
         """this method must be implemented"""
