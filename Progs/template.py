@@ -57,31 +57,38 @@ class ProgDef(object):
             with open(file_path) as configfile:
                 self.filebuff = configfile.read()
 
+    def find_rules(self, key, rules):
+        """
+        recursive function that returns an
+        array of all rules that contain 'key'
+        """
+        out = []
+        for rule in rules:
+            if isinstance(rule, Section):
+                out.extend(self.find_rules(key, rule.rules))
+            else:
+                if key in rule.keys:
+                    out.append(rule)
+        return out
+
     def set(self, key, value, section):
         """set a value to a certain key"""
         self.get_file_buffer()
-        key_found = False
-
-        # cycle through rules
-        for rule in self.config:
-            if not isinstance(rule, Rule):
-                continue
-
-            # check if key exists in the current rule
-            if key in rule.keys:
-
-                key_found = True
-                self.logger.debug('Key: \'%s\' Found!', key)
-
-                match = re.search(rule.rule, self.filebuff)
-                sub_id = rule.keys[key]
-                self.filebuff = self.filebuff[:match.start(sub_id)] \
-                    + value \
-                    + self.filebuff[match.end(sub_id):]
-                self.logger.debug('Value set: %s <- %s', key, value)
-
-        if not key_found:
+        rules = self.find_rules(key, self.config)
+        if rules != []:
+            self.logger.debug('Key: \'%s\' Found! (found %s times)',
+                              key, len(rules))
+        else:
             self.logger.debug('Key: \'%s\' Not found', key)
+
+        for rule in rules:
+            match = re.search(rule.rule, self.filebuff)
+            sub_id = rule.keys[key]
+            self.filebuff = self.filebuff[:match.start(sub_id)] \
+                + value \
+                + self.filebuff[match.end(sub_id):]
+            self.logger.debug('Value set: %s <- %s', key, value)
+
 
     def save(self):
         """this method must be implemented"""
