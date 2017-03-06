@@ -1,5 +1,6 @@
-![alt text](https://github.com/Javyre/systhemer2/raw/master/SysthemerLogoNoCirle.png "Logo Title Text 1")
-======
+<p align="center"><img src="https://github.com/Javyre/systhemer2/raw/master/SysthemerLogoNoCirle.png" alt="Systhemer"/></p>
+***
+
 # systhemer2
 A system theming utility designed for ease of sharing
 
