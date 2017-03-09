@@ -8,11 +8,12 @@ class Rule(ConfigElement):
         self.keys = keys
 
 class Section(ConfigElement):
-    def __init__(self, name, startchar, rules, endchar):
+    def __init__(self, name, startchar, rules, endchar, separator=r'[ \t\n]*'):
         self.name = name
         self.startchar = startchar
         self.rules = rules
         self.endchar = endchar
+        self.separator = separator
         for rule in self.rules:
             rule.parent = self
 
