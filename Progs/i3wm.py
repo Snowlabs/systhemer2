@@ -44,12 +44,12 @@ class i3wm(ProgDef):
                 'placeholder.child_border': 5}),
             Rule(r'client\.background' + space + key, {
                 'background': 1}),
-            Section('bar', '{', [
+            Section(r'([ \t\n]+|^)bar', '{', [
                 Rule(r'test' + space + key, {
                     'testval': 1}),
                 Rule(r'test2' + space + key, {
                     'testval2': 1}),
-                Section(r'subbar', '{', [
+                Section(r'([ \t\n]+|^)subbar', '{', [
                     Rule(r'test3' + space + key, {
                         'testval3': 1}),
                 ], '}')
@@ -57,14 +57,6 @@ class i3wm(ProgDef):
         ]
 
     def save(self):  # saves in a new file for testing purposes
-        # self.logger.debug(
-        #     self.get_proper_buffer(self.filebuff,
-        #                            self.config[1]))
-        # self.logger.debug(
-        #     self.get_proper_buffer(self.filebuff,
-        #                            self.config[-1].rules[2].rules[0]))
-        # self.logger.debug(self._set(self.config[-1].rules[2].rules[0], 'testval3', 'test_value',
-        #                             self.filebuff))
         """save file"""
         outfile = self.get_setting('i3wm_out_file_path')
         self.logger.info('Saving...')

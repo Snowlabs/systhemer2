@@ -88,8 +88,12 @@ class ProgDef(object):
                      2 if range is partially in the exclude range
                      0 if range is not at all in the exclude range
         """
-        if check_range[0] >= exclude_rule[1] and \
-           check_range[1] <= exclude_rule[2]:
+        if check_range[0] > check_range[1]:
+            self.logger.critical('Range makes no sense!'
+                                 ' Startpos is bigger than endpos!')
+            exit(1)
+        if (check_range[0] in range(exclude_rule[1], exclude_rule[2]+1)) and \
+           (check_range[1] in range(exclude_rule[1], exclude_rule[2]+1)):
             return 1
         if (check_range[0] in range(exclude_rule[1], exclude_rule[2]+1)) or \
            (check_range[1] in range(exclude_rule[1], exclude_rule[2]+1)):
@@ -97,13 +101,15 @@ class ProgDef(object):
         return 0
 
     def narrow_buffer(self, section_obj, initial_buffer,
-                      recur=False, recpos=0, recdepth=0, excludes=[]):
+                      recur=False, recpos=0, recdepth=0, excludes=None):
         """
         returns a tuple the start and end positions of the scope
         within the initial_buffer: (startpos, endpos)
 
         exclude rule format: (depth, startpos, endpos)
         """
+        excludes = [] if excludes is None else excludes
+
         # main function
         if not recur:
             count = 0
@@ -140,52 +146,42 @@ class ProgDef(object):
 
         # this recursive portion gets the position of the ending delimiter
         # NOTE: the recursion here could technically be replaced with a loop
+        # DONE: it is no longer unnecessarily recursive!
         else:
-            # look for start or end charcter
-            end_or_start_char = re.search('(%s|%s)' %
-                                          (section_obj.startchar,
-                                           section_obj.endchar),
-                                          initial_buffer[recpos:])
-            # if either start or end character found
-            if end_or_start_char is not None:
+            depth = 0
+            for end_or_start_char in re.finditer('(%s|%s)' %
+                                                 (section_obj.startchar,
+                                                  section_obj.endchar),
+                                                 initial_buffer[recpos:]):
                 is_startchar = re.search(section_obj.startchar,
                                          initial_buffer[recpos:]
                                          [end_or_start_char.start():
                                           end_or_start_char.end()])
                 # if it's a start character
                 if is_startchar is not None:
+                    depth += 1
                     self.logger.debug('found start char')
                     # append a new exclude with None as end position
-                    excludes.append((recdepth+1,
+                    excludes.append((depth,
                                      recpos + end_or_start_char.end(),
                                      None))
-                    return self.narrow_buffer(section_obj, initial_buffer,
-                                              recur=True,
-                                              recpos=recpos
-                                              + end_or_start_char.end(),
-                                              recdepth=recdepth+1,
-                                              excludes=excludes)
+
                 # if it's an end character
                 else:
                     self.logger.debug('found endchar')
-                    if recdepth == 0:
+                    if depth == 0:
                         return (recpos+end_or_start_char.start(), excludes)
                     # find the first exclude tuple that has the same depth as
                     # the current depth and a value of None for the end
                     # position and set the end position for that exclude tuple
                     for i in range(len(excludes)):
-                        if excludes[i][0] == recdepth and \
+                        if excludes[i][0] == depth and \
                            excludes[i][2] is None:
                             excludes[i] = (excludes[i][0],
                                            excludes[i][1],
                                            recpos + end_or_start_char.start())
                             break
-                    return self.narrow_buffer(section_obj, initial_buffer,
-                                              recur=True,
-                                              recpos=recpos
-                                              + end_or_start_char.end(),
-                                              recdepth=recdepth-1,
-                                              excludes=excludes)
+                    depth -= 1
 
     def get_proper_buffer(self, initial_buffer, rule_obj):
         """returns rule_objs scope portion of initial_buffer"""
@@ -211,8 +207,8 @@ class ProgDef(object):
         start_offset = 0
         is_in_root = True
 
-        for i in scope_tree:
-            if isinstance(i, Section):
+        for ce in scope_tree:
+            if isinstance(ce, Section):
                 is_in_root = False
 
                 for er in range(len(exclude_ranges)):
@@ -222,24 +218,45 @@ class ProgDef(object):
                            exclude_ranges[er][2]-start)
 
                 start, end, exclude_ranges \
-                    = self.narrow_buffer(i, out_buffer,
+                    = self.narrow_buffer(ce, out_buffer,
                                          excludes=exclude_ranges)
                 out_buffer = out_buffer[start:end]
                 start_offset += start
 
-        if is_in_root:
-            return (0, len(initial_buffer))
+        print(exclude_ranges)
 
-        return (start_offset, (end-start)+start_offset)
+        if is_in_root:
+            return (0, len(initial_buffer)), exclude_ranges
+
+        return (start_offset, (end-start)+start_offset), exclude_ranges
 
     def _set(self, rule_obj, key, value, _buffer):
         """
         set a value to a certain key for
         a certain rule in the proper scope
         """
-        scope_range = self.get_proper_buffer(_buffer, rule_obj)
-        match = re.search(rule_obj.rule,
-                          _buffer[scope_range[0]:scope_range[1]])
+        scope_range, exclude_ranges = self.get_proper_buffer(_buffer, rule_obj)
+
+        # Construct a list of all matches of 'rule' in the proper scope that
+        # aren't excluded by any of the rules in exclude_ranges
+        matches = [m
+                   for m
+                   in re.finditer(rule_obj.rule,
+                                  _buffer[scope_range[0]:scope_range[1]])
+                   if not (True in [
+                           self.is_excluded(r, (m.start()+scope_range[0],
+                                                m.end()+scope_range[0])) != 0
+                           for r in exclude_ranges
+                           ])]
+        # check if empty list
+        if matches:
+            # for now, we only apply the value to the first key match
+            match = matches[0]
+        else:
+            self.logger.warning('Found rule \'%s\' in program definition'
+                                ' but not in configuration file!', key)
+            return
+        # replace the value in the buffer and return it
         sub_id = rule_obj.keys[key]
         out_buffer = _buffer[:scope_range[0]+match.start(sub_id)] \
             + value \
@@ -263,12 +280,6 @@ class ProgDef(object):
         # go through rules applying 'value' for 'key'
         for rule_obj in rules:
             self.filebuff = self._set(rule_obj, key, value, self.filebuff)
-            # match = re.search(rule_obj.rule, self.filebuff)
-            # sub_id = rule_obj.keys[key]
-            # self.filebuff = self.filebuff[:match.start(sub_id)] \
-            #     + value \
-            #     + self.filebuff[match.end(sub_id):]
-            # self.logger.debug('Value set: %s <- %s', key, value)
 
     def save(self):
         """this method must be implemented"""
