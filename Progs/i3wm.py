@@ -44,13 +44,15 @@ class i3wm(ProgDef):
                 'placeholder.child_border': 5}),
             Rule(r'client\.background' + space + key, {
                 'background': 1}),
-            Section(r'bar[ \t\n]*', '{', [
+            Section(r'([ \t\n]+|^)bar', '{', [
                 Rule(r'test' + space + key, {
-                    'testval': 1,
-                }),
+                    'testval': 1}),
                 Rule(r'test2' + space + key, {
-                    'testval2': 1,
-                }),
+                    'testval2': 1}),
+                Section(r'([ \t\n]+|^)subbar', '{', [
+                    Rule(r'test3' + space + key, {
+                        'testval3': 1}),
+                ], '}')
             ], '}'),
         ]
 
