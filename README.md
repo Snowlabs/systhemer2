@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/Javyre/systhemer2.png?label=ready&title=Ready)](https://waffle.io/Javyre/systhemer2)
 <p align="center"><img src="https://github.com/Javyre/systhemer2/raw/master/SysthemerLogoNoCirle.png" alt="Systhemer"/></p>
 ***
 
