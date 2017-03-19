@@ -7,7 +7,7 @@ import Progs
 
 
 class Settings:
-    pass
+    colorlog_supported = True
     # theme_file_path = './files/theme.toml'
 
 
@@ -73,10 +73,11 @@ def parse_args():
     parser.add_argument('--VDEBUG_LVL',
                         help='set VDEBUG_LVL',
                         action='store')
-    parser.add_argument('-nc',
-                        '--no-colorlog',
-                        help='disable colorlog',
-                        action='store_true')
+    if Settings.colorlog_supported:
+        parser.add_argument('-nc',
+                            '--no-colorlog',
+                            help='disable colorlog',
+                            action='store_true')
     parser.add_argument('path',
                         help='path to theme file',
                         action='store')
@@ -97,5 +98,11 @@ def parse_args():
 
 if __name__ == '__main__':
     import argparse
+    try:
+        import colorlog
+    except ImportError:
+        Settings.colorlog_supported = False
+        Settings.nocolorlog = True
+
     parse_args()
     run()
