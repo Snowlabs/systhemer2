@@ -3,6 +3,8 @@ from colorlog import ColoredFormatter
 
 
 def setup_logger(Settings):
+    logging.addLevelName(Settings.VDEBUG, 'VDEBUG')
+
     fileHandler = logging.FileHandler('systhemer.log', mode='w')
     consHandler = logging.StreamHandler()
     fileFormatter = logging.Formatter(
@@ -16,6 +18,7 @@ def setup_logger(Settings):
         lc+'%(levelname)-8s'+reset+llc
         + ':%(name)-25s: ' + mlc+'%(message)s'+reset,
         log_colors={
+            'VDEBUG':   'bold_purple',
             'DEBUG':    'bold_blue',
             'INFO':     'green',
             'WARNING':  'yellow',
@@ -27,19 +30,20 @@ def setup_logger(Settings):
                 'DEBUG':    'bg_bold_black,bold_white'
             },
             'message': {
+                'VDEBUG':   'bold_purple',
                 'DEBUG':    'bold_blue',
                 'ERROR':    'red',
                 'CRITICAL': 'red'
             }
         })
-    fileHandler.setLevel(logging.DEBUG)
+    fileHandler.setLevel(Settings.VDEBUG)
     consHandler.setLevel(Settings.verbose)
     fileHandler.setFormatter(fileFormatter)
-    consHandler.setFormatter(consFormatter if not Settings.no_colorlog
-                             else fileFormatter)
+    consHandler.setFormatter(fileFormatter if Settings.no_colorlog
+                             else consFormatter)
 
     logger = logging.getLogger('Systhemer')
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(Settings.VDEBUG)
     logger.addHandler(fileHandler)
     logger.addHandler(consHandler)
     return logger

@@ -2,6 +2,7 @@
 import logging
 import re
 from .common import Rule, Section
+from . import common
 
 
 class ProgDef(object):
@@ -15,13 +16,14 @@ class ProgDef(object):
         you can override the set method
     """
 
-    def __init__(self, Settings):
+    def __init__(self, Settings, *args, **kwargs):
         self.name = self.__class__.__name__
         self.Settings = Settings
         self.logger = logging.getLogger('Systhemer.Progs.' + self.name)
         self.filebuff = None
         self.config = {}  # add definitions here
-        self.init()
+        self.special_exludes = []
+        self.init(*args, **kwargs)
 
     def init(self):
         """this method must be implemented"""
@@ -59,26 +61,9 @@ class ProgDef(object):
 
     def find_rules(self, key, rules):
         """
-        recursive function that returns an
-        array of all rules that contain 'key'
+        returns an array of rule objects that contain 'key'
         """
-        out = []
-        # scan rules for key and when found add key to output array
-        for rule_obj in rules:
-            # calls itself for scanning section rules for key
-            if isinstance(rule_obj, Section):
-                out.extend(self.find_rules(key, rule_obj.rules))
-            # check if rule_obj contains key
-            elif isinstance(rule_obj, Rule):
-                if key in rule_obj.keys:
-                    out.append(rule_obj)
-            # invalid type
-            else:
-                self.logger.critical('Member or descendant of self.config'
-                                     ' has invalid type: \'%s\'',
-                                     rule_obj.__class__)
-                exit(1)
-        return out
+        return [l for l in rules.get_leaves() if key in l.keys]
 
     def is_excluded(self, exclude_rule, check_range):
         """ check is the given range is within the exclude rule:
@@ -117,8 +102,9 @@ class ProgDef(object):
                                           + section_obj.separator
                                           + section_obj.startchar,
                                           initial_buffer):
-                self.logger.debug('found start char for name: \'%s\'',
-                                  section_obj.name)
+                self.logger.log(common.Settings.VDEBUG,
+                                'found start char for name: \'%s\'',
+                                section_obj.name)
                 start_pos = start_char.end()
                 (end_pos, exclusions) = self.narrow_buffer(
                     section_obj, initial_buffer, recur=True,
@@ -160,7 +146,7 @@ class ProgDef(object):
                 # if it's a start character
                 if is_startchar is not None:
                     depth += 1
-                    self.logger.debug('found start char')
+                    self.logger.log(common.Settings.VDEBUG, 'found start char')
                     # append a new exclude with None as end position
                     excludes.append((depth,
                                      recpos + end_or_start_char.end(),
@@ -168,7 +154,7 @@ class ProgDef(object):
 
                 # if it's an end character
                 else:
-                    self.logger.debug('found endchar')
+                    self.logger.log(common.Settings.VDEBUG, 'found end char')
                     if depth == 0:
                         return (recpos+end_or_start_char.start(), excludes)
                     # find the first exclude tuple that has the same depth as
@@ -186,19 +172,8 @@ class ProgDef(object):
     def get_proper_buffer(self, initial_buffer, rule_obj):
         """returns rule_objs scope portion of initial_buffer"""
 
-        # generate hierarchy tree for rule_obj
-        scope_tree = [rule_obj]
-        for i in scope_tree:
-            if i is None:
-                break
-            scope_tree.append(i.parent)
-        scope_tree.reverse()
-        if scope_tree[0] is not None:
-            self.logger.error('root is not None! Something is wrong'
-                              ' in rule hierarchy!')
-
-        self.logger.debug('tree: %s', scope_tree)
-        # hierarchy tree generated
+        # hierarchy tree for rule_obj
+        scope_tree = rule_obj.get_tree()
 
         scope_tree.pop(0)
         out_buffer = initial_buffer
@@ -223,7 +198,7 @@ class ProgDef(object):
                 out_buffer = out_buffer[start:end]
                 start_offset += start
 
-        print(exclude_ranges)
+        # print(exclude_ranges)
 
         if is_in_root:
             return (0, len(initial_buffer)), exclude_ranges
@@ -271,7 +246,7 @@ class ProgDef(object):
 
         # get array of rules that contain 'key'
         rules = self.find_rules(key, self.config)
-        if rules != []:
+        if rules:
             self.logger.debug('Key: \'%s\' Found! (found %s times)',
                               key, len(rules))
         else:
