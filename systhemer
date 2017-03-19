@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 """Systhemer2.0 (Now in python!)"""
 from logger import setup_logger
+import logging
 import toml
 import Progs
 
@@ -69,6 +70,9 @@ def parse_args():
                         help='set level of verbosity',
                         action='count',
                         default=0)
+    parser.add_argument('--VDEBUG_LVL',
+                        help='set VDEBUG_LVL',
+                        action='store')
     parser.add_argument('-nc',
                         '--no-colorlog',
                         help='disable colorlog',
@@ -77,9 +81,17 @@ def parse_args():
                         help='path to theme file',
                         action='store')
 
+    Settings.VDEBUG_LVL = 9
     parser.parse_args(namespace=Settings)
-    # {nothing} : WARNING, -v : INFO, -vv : DEBUG, -v*{anything more}, DEBUG
-    Settings.verbose = 30 - Settings.verbose*10
+    Settings.VDEBUG = Settings.VDEBUG_LVL
+    # {nothing} : WARNING,
+    # -v : INFO,
+    # -vv : DEBUG,
+    # -vvv : VDEBUG,
+    # -v*{anything more} : VDEBUG
+    levels = {1: logging.INFO, 2: logging.DEBUG, 3: Settings.VDEBUG_LVL}
+    Settings.verbose = levels[Settings.verbose] \
+        if Settings.verbose in levels else Settings.VDEBUG_LVL
     Settings.theme_file_path = Settings.path
 
 
