@@ -5,6 +5,29 @@ Settings = None
 
 class ConfigElement(object):
     parent = None
+    tree = None
+
+    def build_hierarchy_tree(self):
+        """generate hierarchy tree for Rule object"""
+
+        assert isinstance(self.parent, ConfigElement) or self.parent is None
+        self.tree = [e for e in self.parent.get_tree()] if self.parent else []
+        self.tree.append(self)
+        logger.log(Settings.VDEBUG, 'tree generated: %s', self.tree)
+        return self.tree
+
+    def get_tree(self, force_rebuild=False):
+        """generate hierarchy tree if needed and return it"""
+        if self.tree:
+            logger.debug('hierarchy tree already exists...')
+            if force_rebuild:
+                logger.debug('force_rebuild was true, '
+                             'rebuilding hierarchy tree...')
+                return self.build_hierarchy_tree()
+            return self.tree
+        else:
+            logger.debug('initializing hierarchy tree...')
+            return self.build_hierarchy_tree()
 
 
 class RuleTree(ConfigElement):
@@ -38,6 +61,8 @@ class RuleTree(ConfigElement):
 
     def build_leaves_list(self):
         self.leaves = self._get_leaves(self)
+        self.logger.log(Settings.VDEBUG, 'leaves list generated: %s',
+                        self.leaves)
         return self.leaves
 
     def get_leaves(self, force_rebuild=False):
@@ -58,37 +83,6 @@ class Rule(ConfigElement):
     def __init__(self, rule, keys):
         self.rule = rule
         self.keys = keys
-        self.tree = None
-        self.logger = logger
-
-    def build_hierarchy_tree(self):
-        """generate hierarchy tree for Rule object"""
-        tree = [self]
-        for i in tree:
-            if isinstance(i, RuleTree):
-                break
-            tree.append(i.parent)
-        tree.reverse()
-        if not isinstance(tree[0], RuleTree):
-            self.logger.error('root is not None! Something is wrong'
-                              ' in rule hierarchy!')
-
-        self.logger.log(Settings.VDEBUG, 'tree generated: %s', tree)
-        self.tree = tree
-        return self.tree
-
-    def get_tree(self, force_rebuild=False):
-        """generate hierarchy tree if needed and return it"""
-        if self.tree:
-            self.logger.debug('hierarchy tree already exists...')
-            if force_rebuild:
-                self.logger.debug('force_rebuild was true, '
-                                  'rebuilding hierarchy tree...')
-                return self.build_hierarchy_tree()
-            return self.tree
-        else:
-            self.logger.debug('initializing hierarchy tree...')
-            return self.build_hierarchy_tree()
 
 
 class Section(ConfigElement):

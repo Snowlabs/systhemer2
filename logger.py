@@ -18,7 +18,7 @@ def setup_logger(Settings):
         lc+'%(levelname)-8s'+reset+llc
         + ':%(name)-25s: ' + mlc+'%(message)s'+reset,
         log_colors={
-            'VDEBUG':   'bold_purple',
+            'VDEBUG':   'bold_cyan',
             'DEBUG':    'bold_blue',
             'INFO':     'green',
             'WARNING':  'yellow',
@@ -30,7 +30,7 @@ def setup_logger(Settings):
                 'DEBUG':    'bg_bold_black,bold_white'
             },
             'message': {
-                'VDEBUG':   'bold_purple',
+                'VDEBUG':   'cyan',
                 'DEBUG':    'bold_blue',
                 'ERROR':    'red',
                 'CRITICAL': 'red'
