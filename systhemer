@@ -12,13 +12,6 @@ class Settings:
     VDEBUG_LVL = 9
     # theme_file_path = './files/theme.toml'
 
-
-def convert_toml(path):
-    """Takes path to toml file and return dictionary"""
-    with open(path) as toml_file:
-        return toml.loads(toml_file.read())
-
-
 def run():
     """run program"""
     # initialize
