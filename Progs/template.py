@@ -65,6 +65,7 @@ class ProgDef(object):
             with open(file_path) as configfile:
                 self.filebuff = configfile.read()
                 self.logger.debug('Created filebuffer from %s', file_path)
+        return self.filebuff
 
     def find_rules(self, key, rules):
         """
@@ -133,8 +134,8 @@ class ProgDef(object):
                 if continue_parent:
                     continue
                 return (start_pos, end_pos, exclusions)
-            self.logger.error('section \'%s\' not found!'
-                              ' (returning None)', section_obj.name)
+            self.logger.warning('section \'%s\' not found!'
+                                ' (returning None)', section_obj.name)
             return None
 
         # this recursive portion gets the position of the ending delimiter
@@ -199,9 +200,13 @@ class ProgDef(object):
                            exclude_ranges[er][1]-start,
                            exclude_ranges[er][2]-start)
 
-                start, end, exclude_ranges \
-                    = self.narrow_buffer(ce, out_buffer,
-                                         excludes=exclude_ranges)
+                buffer_exists = self.narrow_buffer(ce, out_buffer,
+                                                   excludes=exclude_ranges)
+                if buffer_exists:
+                    start, end, exclude_ranges = buffer_exists
+                else:
+                    return None
+
                 out_buffer = out_buffer[start:end]
                 start_offset += start
 
@@ -217,27 +222,43 @@ class ProgDef(object):
         set a value to a certain key for
         a certain rule in the proper scope
         """
-        scope_range, exclude_ranges = self.get_proper_buffer(_buffer, rule_obj)
+        section_exists = self.get_proper_buffer(_buffer, rule_obj)
+        if section_exists:
+            scope_range, exclude_ranges = section_exists
+        else:
+            return None
 
         # Construct a list of all matches of 'rule' in the proper scope that
         # aren't excluded by any of the rules in exclude_ranges
-        matches = [m
-                   for m
-                   in re.finditer(rule_obj.rule,
-                                  _buffer[scope_range[0]:scope_range[1]])
-                   if not (True in [
-                           self.is_excluded(r, (m.start()+scope_range[0],
-                                                m.end()+scope_range[0])) != 0
-                           for r in exclude_ranges
-                           ])]
+        print(rule_obj.rule)
+        matches = []
+        for m in re.finditer(rule_obj.rule,
+                             _buffer[scope_range[0]:scope_range[1]]):
+            excs = [self.is_excluded(r, (m.start()+scope_range[0],
+                                         m.end()+scope_range[0])) != 0
+                    for r in exclude_ranges]
+            if not (True in excs):
+                matches.append(m)
+
+        # matches = [m
+        #            for m
+        #            in re.finditer(rule_obj.rule,
+        #                           _buffer[scope_range[0]:scope_range[1]])
+        #            if not (True in [
+        #                    self.is_excluded(r, (m.start()+scope_range[0],
+        #                                         m.end()+scope_range[0])) != 0
+        #                    for r in exclude_ranges
+        #                    ])]
+
         # check if empty list
         if matches:
             # for now, we only apply the value to the first key match
             match = matches[0]
         else:
             self.logger.warning('Found rule \'%s\' in program definition'
-                                ' but not in configuration file!', key)
-            return
+                                ' but not in configuration file!',
+                                key)
+            return None
         # replace the value in the buffer and return it
         sub_id = rule_obj.keys[key]
         out_buffer = _buffer[:scope_range[0]+match.start(sub_id)] \

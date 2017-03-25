@@ -73,4 +73,4 @@ class i3wm(ProgDef):
                                    self.get_setting('i3wm_file_path'))
         self.logger.info('Saving to %s...', outfile)
         with open(outfile, 'w') as newfile:
-            newfile.write(self.filebuff)
+            newfile.write(self.get_file_buffer())
