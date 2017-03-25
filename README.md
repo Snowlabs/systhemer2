@@ -40,7 +40,9 @@ Here's some of what we have in plan for it in the future:
 
 | Feature | Status |
 |---------|--------|
-|         |        |
-|         |        |
-|         |        |
-*(coming soon)*
+| Backup existing config | In Progress |
+| Support for XML | Not Started |
+| OpenBox support | Not Started |
+| Xresources support | Not Started |
+| bspwm support | Not Started |
+| rofi support | Not Started |
