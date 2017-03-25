@@ -36,7 +36,14 @@ class ConfigElement(object):
 
 
 class RuleTree(ConfigElement):
+    """
+    A tree of any ConfigElement type
+    """
     def __init__(self, *args):
+        """
+        args is a bunch of ConfigElement types
+        """
+
         self.logger = logger
         self.leaves = None
         self.rules = args
@@ -85,14 +92,55 @@ class RuleTree(ConfigElement):
 
 
 class Rule(ConfigElement):
+    """
+    Just a configuration rule to search for in the program's config
+    """
     def __init__(self, rule, keys):
+        """
+        e.g.
+        border_color 'foo' 'bar'
+
+        - rule: regex to search for
+                In this case:
+                'border_color' + ([ \t]+(\S+))*5
+
+        - keys: dictionary specifying what to set in the config file
+                Key: variable from global config file to be used
+                Value: number specifying the capture group
+        """
         self.rule = rule
         self.keys = keys
 
 
 class Section(ConfigElement):
+    """
+    This defines a subsection in your configuration file
+
+    e.g.
+
+    Keyword1, Keyword2
+    sub {
+        Keyword1, Keyword2
+    }
+
+    "sub { }" is the subsection, to isolate the keywords
+    """
     def __init__(self, name, startchar, endchar, *rules,
                  separator=r'[ \t\n]*'):
+        """
+        Let's say we have the following subsection
+
+        sub_name {
+            keyword1, keyword2
+        }
+
+        - name: 'sub_name'
+        - startchar: '{'
+        - endchar: '}'
+        - *rules: same structure as a RuleTree, defined above
+        - separator: whatever is between sub_name and { (" " in this case)
+        """
+
         self.name = name
         self.startchar = startchar
         self.rules = rules
