@@ -2,7 +2,7 @@
 """Systhemer2.0 (Now in python!)"""
 from logger import setup_logger
 import logging
-import toml
+import configparser
 import Progs
 
 
@@ -28,7 +28,6 @@ def run():
     # load ini file
     logger.info('Loading theme/config file at: \'%s\'...',
                 Settings.theme_file_path)
-    import configparser
     theme_p = configparser.ConfigParser()
     if not theme_p.read(Settings.theme_file_path):
         logger.critical('File %s not found!', Settings.theme_file_path)
