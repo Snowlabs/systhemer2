@@ -29,7 +29,11 @@ class ProgDef(object):
         """this method must be implemented"""
         raise NotImplementedError()
 
-    def get_setting(self, setting, critical=True, msg=None):
+    def get_default_path(self):
+        """this method must be implemented"""
+        raise NotImplementedError()
+
+    def get_setting(self, setting, default=None, critical=True, msg=None):
         """Get a setting from self.Settings"""
         value = getattr(self.Settings, setting, None)
         if value is None:
@@ -40,21 +44,24 @@ class ProgDef(object):
                 exit(1)
             else:
                 self.logger.error(msg + ' Returning \'None\'.', setting)
-                return None
+                return default
         return value
 
     def get_file_buffer(self):
         """Checks if filebuffer exists. If not, one is created."""
         # if filebuffer doesn't exist
         if self.filebuff is None:
-            # get file path from Settings
-            file_path = getattr(self.Settings, self.name + '_file_path', None)
-            file_path = self.get_setting(self.name + '_file_path',
-                                         msg='File path for: \'%s\' not set!'
-                                         ' Please set a value for option: %s'
-                                         % (self.name,
-                                            self.name + '_file_path'),
-                                         critical=True)
+            # get file path from Settings if file is not foudn in default path
+            file_path = self.get_default_path()
+            if not file_path:
+                file_path \
+                    = self.get_setting(self.name + '_file_path',
+                                       self.get_default_path(),
+                                       msg='File path for: \'%s\' not set!'
+                                       ' Please set a value for option: %s'
+                                       % (self.name,
+                                          self.name + '_file_path'),
+                                       critical=True)
 
             with open(file_path) as configfile:
                 self.filebuff = configfile.read()

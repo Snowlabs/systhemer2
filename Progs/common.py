@@ -3,6 +3,11 @@ logger = logging.getLogger('Systhemer.Progs.common')
 Settings = None
 
 
+def get_home_dir():
+    from os.path import expanduser
+    return expanduser('~')
+
+
 class ConfigElement(object):
     parent = None
     tree = None
