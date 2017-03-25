@@ -7,7 +7,9 @@ import Progs
 
 
 class Settings:
+    # default settings...
     colorlog_supported = True
+    VDEBUG_LVL = 9
     # theme_file_path = './files/theme.toml'
 
 
@@ -23,21 +25,18 @@ def run():
     logger = setup_logger(Settings)
     Progs.setup(Settings)
 
-    # load toml file
+    # load ini file
     logger.info('Loading theme/config file at: \'%s\'...',
                 Settings.theme_file_path)
-    try:
-        theme = convert_toml(Settings.theme_file_path)
-    except toml.TomlDecodeError as e:
-        logger.critical('Syntax error in %s: %s',
-                        Settings.theme_file_path, e)
-        exit(1)
-    except FileNotFoundError:
+    import configparser
+    theme_p = configparser.ConfigParser()
+    if not theme_p.read(Settings.theme_file_path):
         logger.critical('File %s not found!', Settings.theme_file_path)
         exit(1)
+    theme = theme_p._sections
 
     logger.log(Settings.VDEBUG, 'Theme file data: %s', theme)
-    # toml file loaded
+    # ini file loaded
     # initialized
 
     # Apply theme
@@ -82,7 +81,6 @@ def parse_args():
                         help='path to theme file',
                         action='store')
 
-    Settings.VDEBUG_LVL = 9
     parser.parse_args(namespace=Settings)
     Settings.VDEBUG = Settings.VDEBUG_LVL
     # {nothing} : WARNING,
