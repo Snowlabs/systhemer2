@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/Javyre/systhemer2/raw/master/SysthemerLogoNoCirle.png" alt="Systhemer"/></p>
+<p align="center"><img src="https://github.com/Javyre/systhemer2/raw/master/assets/SysthemerLogoNoCirle.png" alt="Systhemer"/></p>
 ***
 <a href="https://waffle.io/Javyre/systhemer"><img src="https://badge.waffle.io/Javyre/systhemer2.png?label=ready&title=Ready" alt="Waffle.io"></a>
 ***
