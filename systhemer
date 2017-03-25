@@ -12,19 +12,9 @@ class Settings:
     VDEBUG_LVL = 9
     # theme_file_path = './files/theme.toml'
 
-
-def convert_toml(path):
-    """Takes path to toml file and return dictionary"""
-    with open(path) as toml_file:
-        return toml.loads(toml_file.read())
-
-
 def run():
     """run program"""
     # initialize
-    logger = setup_logger(Settings)
-    Progs.setup(Settings)
-
     # load ini file
     logger.info('Loading theme/config file at: \'%s\'...',
                 Settings.theme_file_path)
@@ -102,4 +92,6 @@ if __name__ == '__main__':
         Settings.nocolorlog = True
 
     parse_args()
+    logger = setup_logger(Settings)
+    Progs.setup(Settings)
     run()

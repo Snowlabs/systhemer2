@@ -54,9 +54,23 @@ class i3wm(ProgDef):
                                 'testval3': 1})))
         )
 
+    def get_default_path(self):
+        from . import common
+        import os
+        xdg_home = os.environ.get('XDG_CONFIG_HOME')
+        dirs = [xdg_home + '/i3/config' if xdg_home else None,
+                common.get_home_dir() + '/.i3/config']
+
+        for p in [d for d in dirs if d]:
+            if os.path.isfile(p):
+                return p
+
+        return None
+
     def save(self):  # saves in a new file for testing purposes
         """save file"""
-        outfile = self.get_setting('i3wm_out_file_path')
-        self.logger.info('Saving...')
+        outfile = self.get_setting('i3wm_out_file_path',
+                                   self.get_setting('i3wm_file_path'))
+        self.logger.info('Saving to %s...', outfile)
         with open(outfile, 'w') as newfile:
             newfile.write(self.filebuff)
