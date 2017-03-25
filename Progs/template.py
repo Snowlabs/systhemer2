@@ -52,19 +52,19 @@ class ProgDef(object):
         # if filebuffer doesn't exist
         if self.filebuff is None:
             # get file path from Settings if file is not foudn in default path
-            file_path = self.get_default_path()
+            file_path = self.get_setting(self.name + '_file_path',
+                                         self.get_default_path(),
+                                         msg='File path for: \'%s\' not set!'
+                                         ' Please set a value for option: %s'
+                                         % (self.name,
+                                            self.name + '_file_path'),
+                                         critical=True)
             if not file_path:
-                file_path \
-                    = self.get_setting(self.name + '_file_path',
-                                       self.get_default_path(),
-                                       msg='File path for: \'%s\' not set!'
-                                       ' Please set a value for option: %s'
-                                       % (self.name,
-                                          self.name + '_file_path'),
-                                       critical=True)
+                file_path = self.get_default_path()
 
             with open(file_path) as configfile:
                 self.filebuff = configfile.read()
+                self.logger.debug('Created filebuffer from %s', file_path)
 
     def find_rules(self, key, rules):
         """
