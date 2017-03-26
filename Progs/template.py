@@ -22,7 +22,7 @@ class ProgDef(object):
         self.logger = logging.getLogger('Systhemer.Progs.' + self.name)
         self.filebuff = None
         self.config = {}  # add definitions here
-        self.special_exludes = []
+        self.special_excludes = []
         self.init(*args, **kwargs)
 
     def init(self):
