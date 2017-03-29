@@ -1,1 +1,2 @@
-phinx_py3doc_enhanced_theme
+phinx_py3doc_enhanced_theme >= 2.4.0
+
