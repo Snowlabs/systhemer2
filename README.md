@@ -3,10 +3,10 @@
 <a href="https://waffle.io/Javyre/systhemer"><img src="https://badge.waffle.io/Javyre/systhemer2.png?label=ready&title=Ready" alt="Waffle.io"></a>
 ***
 <p align="center">
-<b><a href="http://systhemer2.readthedocs.io">API Documentation<\a><\b>
+<b><a href="http://systhemer2.readthedocs.io">API Documentation</a></b>
 |
-<b><a href="http://systhemer2.readthedocs.io">User Documentation<\a><\b>
-<\p>
+<b><a href="http://systhemer2.readthedocs.io">User Documentation</a></b>
+</p>
 ***
 
 # systhemer2
