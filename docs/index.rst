@@ -2,11 +2,6 @@
    sphinx-quickstart on Mon Mar 27 21:01:26 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
-.. toctree::
-   :maxdepth: 2
-
-   Progs/common
-   Progs/template
 
 Systhemer
 =========
@@ -23,9 +18,11 @@ External Links:
 
 Progs Modules
 -------------
+.. toctree::
+   :maxdepth: 2
 
-* :doc:`Progs/common`
-* :doc:`Progs/template`
+   Progs/common
+   Progs/template
 
 .. _Github repo: https://github.com/Javyre/systhemer2
 .. _User wiki: https://github.com/Javyre/systhemer2/wiki
