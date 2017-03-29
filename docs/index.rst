@@ -21,8 +21,7 @@ Progs Modules
 .. toctree::
    :maxdepth: 2
 
-   Progs/common
-   Progs/template
+   Progs
 
 .. _Github repo: https://github.com/Javyre/systhemer2
 .. _User wiki: https://github.com/Javyre/systhemer2/wiki
