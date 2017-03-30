@@ -9,6 +9,7 @@ def setup(Settings):
     import logging
     global prog_defs
 
+    prog_defs = []
     logger = logging.getLogger('Systhemer.Progs')
 
     for pf in filter(lambda p: p[-3:] == '.py' and
