@@ -1,62 +1,25 @@
 import logging
-import shlex
+import cmd
 import Progs
 
-logger = logging.getLogger('Systhemer.interactive')
 
+class iconsole(cmd.Cmd):
+    def __init__(self, Settings, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.Settings = Settings
+        self.logger = logging.getLogger('Systhemer.interactive')
 
-class commands(object):
-    @staticmethod
-    def _quit(S):
+    intro = 'Welcome to the Systhemer console!'
+    prompt = '> '
+    file = None
+
+    def do_quit(self, args):
         print('exiting interactive mode...')
         exit(0)
 
-    @staticmethod
-    def _exec(S, s):
-        print(s)
-        exec(s)
+    def do_exec(self, args):
+        print(args)
+        exec(args[0])
 
-    @staticmethod
-    def reload_progdefs(S):
-        Progs.setup(S)
-
-
-def run(Settings):
-    def run_cmd(cmd, args=[]):
-        if args:
-            cmd(Settings, *args)
-        else:
-            cmd(Settings)
-    try:
-        while True:
-            # get input
-            command = input('> ')
-
-            # skip empty line
-            if not command:
-                continue
-
-            # parse input
-            command = shlex.split(command)
-            command, *args = command
-            logger.log(Settings.VDEBUG,
-                       'cmd: \'%s\', args: %s' % (command, args))
-
-            # replace '-' chars with '_' in command
-            command = ''.join([c if c != '-' else '_' for c in command])
-
-            # run command with args
-            # it tries to find the command in commands and then
-            # _command and if nothing is found then cmd=None
-            cmd = getattr(commands, command,
-                          getattr(commands, '_'+command,
-                                  None))
-            if cmd:
-                run_cmd(cmd, args)
-            else:
-                print('Error: command not found!')
-
-    # handle KeyboardInterrupt
-    except KeyboardInterrupt:
-        print()
-        run_cmd(commands.quit)
+    def do_reload_progdefs(self, args):
+        Progs.setup(self.Settings)
