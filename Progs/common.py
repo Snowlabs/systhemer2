@@ -227,7 +227,7 @@ class RuleVLen(Rule):
 
         # replace the value in the buffer and return it
         sub_id = self.keys[key][0]
-        # +1 for consistency with sub_id 1-based numbering
+        # -1 for consistency with sub_id 1-based numbering
         sub_sub_id = self.keys[key][1]-1
         out_buffer \
             = _buffer[:scope_range[0]+match.starts(sub_id)[sub_sub_id]] \

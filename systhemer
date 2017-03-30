@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 """Systhemer2.0 (Now in python!)"""
 from logger import setup_logger
+import interactive
 import logging
 import configparser
 import Progs
@@ -53,6 +54,10 @@ def run():
 def parse_args():
     parser = argparse.ArgumentParser(description='Systhemer: System theming'
                                      'utility designed for ease of sharing')
+    parser.add_argument('-i',
+                        '--interactive',
+                        help='run Systhemer in interactive mode',
+                        action='store_true')
     parser.add_argument('-v',
                         '--verbose',
                         help='set level of verbosity',
@@ -94,4 +99,7 @@ if __name__ == '__main__':
     parse_args()
     logger = setup_logger(Settings)
     Progs.setup(Settings)
-    run()
+    if Settings.interactive:
+        interactive.run(Settings)
+    else:
+        run()
