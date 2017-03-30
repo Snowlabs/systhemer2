@@ -1,4 +1,5 @@
 import logging
+import regex
 logger = logging.getLogger('Systhemer.Progs.common')
 Settings = None
 
@@ -6,6 +7,30 @@ Settings = None
 def get_home_dir():
     from os.path import expanduser
     return expanduser('~')
+
+
+class utils(object):
+    @staticmethod
+    def is_excluded(exclude_rule, check_range):
+        """ check is the given range is within the exclude rule:
+            args: exclude_rule: (depth, startpos, endpos)
+                  check_range:  (startpos, endpos)
+            returns: 1 if range is completely in the exclude range
+                     2 if range is partially in the exclude range
+                     0 if range is not at all in the exclude range
+        """
+        if check_range[0] > check_range[1]:
+            logger = logging.getLogger('Systhemer.common.utils')
+            logger.critical('Range makes no sense!'
+                            ' Startpos is bigger than endpos!')
+            exit(1)
+        if (check_range[0] in range(exclude_rule[1], exclude_rule[2]+1)) and \
+           (check_range[1] in range(exclude_rule[1], exclude_rule[2]+1)):
+            return 1
+        if (check_range[0] in range(exclude_rule[1], exclude_rule[2]+1)) or \
+           (check_range[1] in range(exclude_rule[1], exclude_rule[2]+1)):
+            return 2
+        return 0
 
 
 class ConfigElement(object):
@@ -102,26 +127,126 @@ class Rule(ConfigElement):
 
         - rule: regex to search for
                 In this case:
-                'border_color' + ([ \t]+(\S+))*5
+                r'border_color' + r'([ \t]+(\S+))'*5
 
         - keys: dictionary specifying what to set in the config file
-                Key: variable from global config file to be used
-                Value: number specifying the capture group
+                - Key: variable from global config file to be used
+                - Value: number specifying the capture group
         """
         self.rule = rule
         self.keys = keys
+        self.logger = logging.getLogger('Systhemer.Progs.common.'
+                                        + self.__class__.__name__)
+
+    def _set(self, key, value, _buffer, scope_range, exclude_ranges):
+        # Construct a list of all matches of 'rule' in the proper scope that
+        # aren't excluded by any of the rules in exclude_ranges
+        print(self.rule)
+        matches = []
+        for m in regex.finditer(self.rule,
+                                _buffer[scope_range[0]:scope_range[1]]):
+            excs = [utils.is_excluded(r, (m.start()+scope_range[0],
+                                          m.end()+scope_range[0])) != 0
+                    for r in exclude_ranges]
+            if not (True in excs):
+                matches.append(m)
+
+        # check if empty list
+        if matches:
+            # for now, we only apply the value to the first key match
+            match = matches[0]
+        else:
+            self.logger.warning('Found rule \'%s\' in program definition'
+                                ' but not in configuration file!',
+                                key)
+            return None
+
+        # replace the value in the buffer and return it
+        sub_id = self.keys[key]
+        out_buffer = _buffer[:scope_range[0]+match.start(sub_id)] \
+            + value \
+            + _buffer[scope_range[0]+match.end(sub_id):]
+        self.logger.debug('Value set: %s <- %s', key, value)
+        return out_buffer
+
+
+class RuleVLen(Rule):
+    """
+    Subclass of Rule but handles variable length regex capture group results
+    """
+    def __init__(self, rule, keys):
+        """
+        e.g.
+        border_color 'foo' 'bar' 'baz'
+
+        - rule: regex to search for
+                In this case:
+                r'border_color(?:[ \t]+(\S+)){1,3}'
+
+                In this case, the capture group '(\S+)' can be
+                captured many times (from 1 to 3 times)
+
+        - keys: dictionary specifying what to set in the config file
+                - Key: variable from global config file to be used
+                - Value:
+                    - tuple of :
+                        - number specifying the capture group
+                        - number specifying the capture id of that group
+                        - string specifying default value
+                          (yes this is necessary)
+        """
+        self.rule = rule
+        self.keys = keys
+        self.logger = logging.getLogger('Systhemer.Progs.common.'
+                                        + self.__class__.__name__)
+
+    def _set(self, key, value, _buffer, scope_range, exclude_ranges):
+        # Construct a list of all matches of 'rule' in the proper scope that
+        # aren't excluded by any of the rules in exclude_ranges
+        print(self.rule)
+        matches = []
+        for m in regex.finditer(self.rule,
+                                _buffer[scope_range[0]:scope_range[1]]):
+
+            excs = [utils.is_excluded(r, (m.start()+scope_range[0],
+                                          m.end()+scope_range[0])) != 0
+                    for r in exclude_ranges]
+
+            if not (True in excs):
+                matches.append(m)
+
+        # check if empty list
+        if matches:
+            # for now, we only apply the value to the first key match
+            match = matches[0]
+        else:
+            self.logger.warning('Found rule \'%s\' in program definition'
+                                ' but not in configuration file!',
+                                key)
+            return None
+
+        # replace the value in the buffer and return it
+        sub_id = self.keys[key][0]
+        # +1 for consistency with sub_id 1-based numbering
+        sub_sub_id = self.keys[key][1]-1
+        out_buffer \
+            = _buffer[:scope_range[0]+match.starts(sub_id)[sub_sub_id]] \
+            + value \
+            + _buffer[scope_range[0]+match.ends(sub_id)[sub_sub_id]:]
+        self.logger.debug('Value set: %s <- %s', key, value)
+        return out_buffer
 
 
 class Section(ConfigElement):
     """
     This defines a subsection in your configuration file
 
-    e.g.
+    e.g.::
 
-    Keyword1, Keyword2
-    sub {
-        Keyword1, Keyword2
-    }
+       Keyword1, Keyword2
+       sub {
+           Keyword1, Keyword2
+       }
 
     "sub { }" is the subsection, to isolate the keywords
     """

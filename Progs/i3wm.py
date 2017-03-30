@@ -1,5 +1,5 @@
 from .template import ProgDef
-from .common import RuleTree, Rule, Section
+from .common import RuleTree, Rule, RuleVLen, Section
 
 
 class i3wm(ProgDef):
@@ -8,16 +8,17 @@ class i3wm(ProgDef):
     def init(self):
         space = r'[ \t]+'
         key = r'(\S+)'
+        def_val = '#ffffff'
         self.config = RuleTree(
             # client.focused key key key key key
             #                ^1  ^2  ^3  ^4  ^5
-            Rule(r'client\.focused' + (space+key)*5, {
-                'focused.border':       1,
-                'titlebar':             1,
-                'focused.background':   2,
-                'focused.text':         3,
-                'focused.indicator':    4,
-                'focused.child_border': 5}),
+            RuleVLen(r'client\.focused(?:' + space + key + r'){1,5}', {
+                'focused.border':       (1, 1, def_val),
+                'titlebar':             (1, 1, def_val),
+                'focused.background':   (1, 2, def_val),
+                'focused.text':         (1, 3, def_val),
+                'focused.indicator':    (1, 4, def_val),
+                'focused.child_border': (1, 5, def_val)}),
             Rule(r'client\.focused_inactive' + (space+key)*5, {
                 'focused_inactive.border':       1,
                 'focused_inactive.background':   2,

@@ -1,7 +1,7 @@
 """Template module fro program definitions"""
 import logging
 import re
-from .common import Rule, Section
+from .common import Rule, Section, utils
 from . import common
 
 
@@ -73,26 +73,6 @@ class ProgDef(object):
         """
         return [l for l in rules.get_leaves() if key in l.keys]
 
-    def is_excluded(self, exclude_rule, check_range):
-        """ check is the given range is within the exclude rule:
-            args: exclude_rule: (depth, startpos, endpos)
-                  check_range:  (startpos, endpos)
-            returns: 1 if range is completely in the exclude range
-                     2 if range is partially in the exclude range
-                     0 if range is not at all in the exclude range
-        """
-        if check_range[0] > check_range[1]:
-            self.logger.critical('Range makes no sense!'
-                                 ' Startpos is bigger than endpos!')
-            exit(1)
-        if (check_range[0] in range(exclude_rule[1], exclude_rule[2]+1)) and \
-           (check_range[1] in range(exclude_rule[1], exclude_rule[2]+1)):
-            return 1
-        if (check_range[0] in range(exclude_rule[1], exclude_rule[2]+1)) or \
-           (check_range[1] in range(exclude_rule[1], exclude_rule[2]+1)):
-            return 2
-        return 0
-
     def narrow_buffer(self, section_obj, initial_buffer,
                       recur=False, recpos=0, recdepth=0, excludes=None):
         """
@@ -122,8 +102,8 @@ class ProgDef(object):
                 continue_parent = False
                 for e in excludes:
                     # print(e, (start_char.start(), end_pos+end_char.end()))
-                    if self.is_excluded(e, (start_char.start(),
-                                            end_pos+end_char.end())):
+                    if utils.is_excluded(e, (start_char.start(),
+                                             end_pos+end_char.end())):
                         self.logger.error('section \'%s\' found but'
                                           ' in wrong scope!'
                                           ' returning None)',
@@ -222,50 +202,53 @@ class ProgDef(object):
         set a value to a certain key for
         a certain rule in the proper scope
         """
+
         section_exists = self.get_proper_buffer(_buffer, rule_obj)
         if section_exists:
             scope_range, exclude_ranges = section_exists
         else:
             return None
 
-        # Construct a list of all matches of 'rule' in the proper scope that
-        # aren't excluded by any of the rules in exclude_ranges
-        print(rule_obj.rule)
-        matches = []
-        for m in re.finditer(rule_obj.rule,
-                             _buffer[scope_range[0]:scope_range[1]]):
-            excs = [self.is_excluded(r, (m.start()+scope_range[0],
-                                         m.end()+scope_range[0])) != 0
-                    for r in exclude_ranges]
-            if not (True in excs):
-                matches.append(m)
+        return rule_obj._set(key, value, _buffer, scope_range, exclude_ranges)
+        # # Construct a list of all matches of 'rule' in the proper scope that
+        # # aren't excluded by any of the rules in exclude_ranges
+        # print(rule_obj.rule)
+        # matches = []
+        # for m in re.finditer(rule_obj.rule,
+        #                      _buffer[scope_range[0]:scope_range[1]]):
+        #     excs = [self.is_excluded(r, (m.start()+scope_range[0],
+        #                                  m.end()+scope_range[0])) != 0
+        #             for r in exclude_ranges]
+        #     if not (True in excs):
+        #         matches.append(m)
 
-        # matches = [m
-        #            for m
-        #            in re.finditer(rule_obj.rule,
-        #                           _buffer[scope_range[0]:scope_range[1]])
-        #            if not (True in [
-        #                    self.is_excluded(r, (m.start()+scope_range[0],
-        #                                         m.end()+scope_range[0])) != 0
-        #                    for r in exclude_ranges
-        #                    ])]
+        # # matches = [m
+        # #            for m
+        # #            in re.finditer(rule_obj.rule,
+        # #                           _buffer[scope_range[0]:scope_range[1]])
+        # #            if not (True in [
+        # #                    self.is_excluded(r, (m.start()+scope_range[0],
+        # #                                         m.end()+scope_range[0])) != 0
+        # #                    for r in exclude_ranges
+        # #                    ])]
 
-        # check if empty list
-        if matches:
-            # for now, we only apply the value to the first key match
-            match = matches[0]
-        else:
-            self.logger.warning('Found rule \'%s\' in program definition'
-                                ' but not in configuration file!',
-                                key)
-            return None
-        # replace the value in the buffer and return it
-        sub_id = rule_obj.keys[key]
-        out_buffer = _buffer[:scope_range[0]+match.start(sub_id)] \
-            + value \
-            + _buffer[scope_range[0]+match.end(sub_id):]
-        self.logger.debug('Value set: %s <- %s', key, value)
-        return out_buffer
+        # # check if empty list
+        # if matches:
+        #     # for now, we only apply the value to the first key match
+        #     match = matches[0]
+        # else:
+        #     self.logger.warning('Found rule \'%s\' in program definition'
+        #                         ' but not in configuration file!',
+        #                         key)
+        #     return None
+
+        # # replace the value in the buffer and return it
+        # sub_id = rule_obj.keys[key]
+        # out_buffer = _buffer[:scope_range[0]+match.start(sub_id)] \
+        #     + value \
+        #     + _buffer[scope_range[0]+match.end(sub_id):]
+        # self.logger.debug('Value set: %s <- %s', key, value)
+        # return out_buffer
 
     def set(self, key, value, section):
         """set a value to a certain key"""
