@@ -48,6 +48,13 @@ class ProgDef(object):
         """
         raise NotImplementedError()
 
+    def get_name(self):
+        """Returns the name of the program. Class name by default.
+
+        Can be overridden if necessary
+        """
+        return self.name
+
     def get_setting(self, setting, default=None, critical=True, msg=None):
         """Get a setting from self.Settings."""
         value = getattr(self.Settings, setting, None)
