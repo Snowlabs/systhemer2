@@ -7,7 +7,7 @@
 <p align="center">
 <b><a href="http://systhemer2.readthedocs.io">API Documentation</a></b>
 |
-<b><a href="http://systhemer2.readthedocs.io">User Documentation</a></b>
+<b><a href="https://github.com/Javyre/systhemer2/wiki">User Documentation</a></b>
 </p>
 
 ***
