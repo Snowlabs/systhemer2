@@ -21,5 +21,10 @@ class iconsole(cmd.Cmd):
         print(args)
         exec(args[0])
 
-    def do_reload_progdefs(self, args):
-        Progs.setup(self.Settings)
+    def do_reload(self, args):
+        args = args.split()
+        sub_cmd = args.pop(0)
+        if sub_cmd == 'prog-defs':
+            Progs.setup(self.Settings)
+        else:
+            print('Error: subcommand not found \'%s\'' % sub_cmd)
