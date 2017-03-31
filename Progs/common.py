@@ -1,3 +1,17 @@
+"""Utilities for managing Rules.
+
+This module contains classes and functions for generating rules for
+searching and replacing text using regex.
+
+Classes:
+    * `ConfigElement` - Base class. Others derive from this one
+    * `RuleTree` - Tree containing `ConfigElement` objects
+    * `Rule` - A single rule defined using regex
+    * `RuleVLen` - Like `Rule` but of variable length
+    * `Section` - Section of file to isolate from the rest
+"""
+
+
 import logging
 import regex
 logger = logging.getLogger('Systhemer.Progs.common')
@@ -5,19 +19,27 @@ Settings = None
 
 
 def get_home_dir():
+    """Get home directory for the user.
+    """
     from os.path import expanduser
     return expanduser('~')
 
 
 class utils(object):
+    """Namespace for basic utilities.
+    """
     @staticmethod
     def is_excluded(exclude_rule, check_range):
-        """ check is the given range is within the exclude rule:
-            args: exclude_rule: (depth, startpos, endpos)
-                  check_range:  (startpos, endpos)
-            returns: 1 if range is completely in the exclude range
-                     2 if range is partially in the exclude range
-                     0 if range is not at all in the exclude range
+        """ Check if the given range is within the exclude rule.
+
+        * `exclude_rule`: (depth, startpos, endpos)
+        * `check_range`:  (startpos, endpos)
+
+        Returns:
+
+        * **1** if range is completely in the exclude range
+        * **2** if range is partially in the exclude range
+        * **0** if range is not at all in the exclude range
         """
         if check_range[0] > check_range[1]:
             logger = logging.getLogger('Systhemer.common.utils')
@@ -38,7 +60,8 @@ class ConfigElement(object):
     tree = None
 
     def build_hierarchy_tree(self):
-        """generate hierarchy tree for Rule object"""
+        """Generate hierarchy tree for Rule object.
+        """
 
         assert isinstance(self.parent, ConfigElement) or self.parent is None
         self.tree = [e for e in self.parent.get_tree()] if self.parent else []
@@ -47,7 +70,8 @@ class ConfigElement(object):
         return self.tree
 
     def get_tree(self, force_rebuild=False):
-        """generate hierarchy tree if needed and return it"""
+        """Generate hierarchy tree if needed and return it
+        """
         if self.tree:
             logger.debug('hierarchy tree already exists...')
             if force_rebuild:
@@ -61,12 +85,16 @@ class ConfigElement(object):
 
 
 class RuleTree(ConfigElement):
-    """
-    A tree of any ConfigElement type
+    """Tree for any subclass of `ConfigElement`.
+
+    This class is used to build a tree for defining complex rules. It's
+    essentially possible to include itself, as `RuleTree` is also a
+    subclass of `ConfigElement`.
     """
     def __init__(self, *args):
-        """
-        args is a bunch of ConfigElement types
+        """Build the rule tree from `*args`.
+
+        * `*args` - Comma separated `ConfigElement` types
         """
 
         self.logger = logger
@@ -103,7 +131,9 @@ class RuleTree(ConfigElement):
         return self.leaves
 
     def get_leaves(self, force_rebuild=False):
-        """generate leaves array if needed and return it"""
+        """Build the array of leaves if not already built and return it.
+        """
+
         if self.leaves:
             self.logger.debug('leaves array already exists...')
             if force_rebuild:
@@ -117,19 +147,23 @@ class RuleTree(ConfigElement):
 
 
 class Rule(ConfigElement):
-    """
-    Just a configuration rule to search for in the program's config
+    """A simple configuration line to search for.
+
+    This `Rule` only works if the line of the regex is fixed.
+    If not, use the `RuleVLen` class.
     """
     def __init__(self, rule, keys):
-        """
-        e.g.
-        border_color 'foo' 'bar'
+        """Build the `Rule` object.
 
-        - rule: regex to search for
+        Example::
+
+            border_color 'foo' 'bar'
+
+        * `rule`: regex to search for
                 In this case:
-                r'border_color' + r'([ \t]+(\S+))'*5
+                r'border_color' + r'([ \t]+(\S+))'*2
 
-        - keys: dictionary specifying what to set in the config file
+        * `keys`: dictionary specifying what to set in the config file
                 - Key: variable from global config file to be used
                 - Value: number specifying the capture group
         """
@@ -171,22 +205,23 @@ class Rule(ConfigElement):
 
 
 class RuleVLen(Rule):
-    """
-    Subclass of Rule but handles variable length regex capture group results
+    """Similar to the `Rule` class, supports variable length matching
     """
     def __init__(self, rule, keys):
-        """
-        e.g.
-        border_color 'foo' 'bar' 'baz'
+        """Build a `RuleVLen` object
 
-        - rule: regex to search for
+        Example::
+
+            border_color 'foo' 'bar' 'baz'
+
+        * `rule`: regex to search for
                 In this case:
                 r'border_color(?:[ \t]+(\S+)){1,3}'
 
                 In this case, the capture group '(\S+)' can be
                 captured many times (from 1 to 3 times)
 
-        - keys: dictionary specifying what to set in the config file
+        * `keys`: dictionary specifying what to set in the config file
                 - Key: variable from global config file to be used
                 - Value:
                     - tuple of :
@@ -238,10 +273,9 @@ class RuleVLen(Rule):
 
 
 class Section(ConfigElement):
-    """
-    This defines a subsection in your configuration file
+    """This defines a subsection in your configuration file.
 
-    e.g.::
+    Example::
 
        Keyword1, Keyword2
        sub {
@@ -252,18 +286,21 @@ class Section(ConfigElement):
     """
     def __init__(self, name, startchar, endchar, *rules,
                  separator=r'[ \t\n]*'):
-        """
-        Let's say we have the following subsection
+        """Build a `Section` object
 
-        sub_name {
-            keyword1, keyword2
-        }
+        Example::
 
-        - name: 'sub_name'
-        - startchar: '{'
-        - endchar: '}'
-        - *rules: same structure as a RuleTree, defined above
-        - separator: whatever is between sub_name and { (" " in this case)
+            foo, bar
+
+            sub_name {
+                foo, bar
+            }
+
+        * name: 'sub_name'. Can be empty.
+        * startchar: '{'
+        * endchar: '}'
+        * *rules: same structure as a RuleTree, defined above
+        * separator: whatever is between sub_name and { (" " in this case)
         """
 
         self.name = name

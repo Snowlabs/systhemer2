@@ -1,4 +1,7 @@
-"""Template module fro program definitions"""
+"""Templates for configuring program function
+
+Every program definition must inherit from the `ProgDef` class
+"""
 import logging
 import re
 from .common import Rule, Section, utils
@@ -6,17 +9,19 @@ from . import common
 
 
 class ProgDef(object):
-    """
-    Template for program definitions:
-        program definitions should inherit from this class
-        and should define settings in the config dictionary
-        (see already written definitions for example implementation)
+    """Template for program definitions.
 
-        if a program definition needs special handling,
-        you can override the set method
+    Program definitions should inherit from this class
+    and should define settings in the config dictionary
+    (see already written definitions for example implementation).
+
+    If a program definition needs special handling, you may
+    override the set method.
     """
 
     def __init__(self, Settings, *args, **kwargs):
+        """Build a `ProgDef` object.
+        """
         self.name = self.__class__.__name__
         self.Settings = Settings
         self.logger = logging.getLogger('Systhemer.Progs.' + self.name)
@@ -26,15 +31,25 @@ class ProgDef(object):
         self.init(*args, **kwargs)
 
     def init(self):
-        """this method must be implemented"""
+        """Define rules for configuration.
+
+        This method must set the `self.config` variable, which must
+        be of type `common.ConfigElement`. Usage is defined under the
+        `Common` and `Example` sections.
+
+        This method must be overridden.
+        """
         raise NotImplementedError()
 
     def get_default_path(self):
-        """this method must be implemented"""
+        """Return the path to use for configuration.
+
+        This method must be overridden.
+        """
         raise NotImplementedError()
 
     def get_setting(self, setting, default=None, critical=True, msg=None):
-        """Get a setting from self.Settings"""
+        """Get a setting from self.Settings."""
         value = getattr(self.Settings, setting, None)
         if value is None:
             msg = msg if msg is not None else \
@@ -48,7 +63,7 @@ class ProgDef(object):
         return value
 
     def get_file_buffer(self):
-        """Checks if filebuffer exists. If not, one is created."""
+        """Check if filebuffer exists. If not, one is created."""
         # if filebuffer doesn't exist
         if self.filebuff is None:
             # get file path from Settings if file is not foudn in default path
@@ -68,18 +83,18 @@ class ProgDef(object):
         return self.filebuff
 
     def find_rules(self, key, rules):
-        """
-        returns an array of rule objects that contain 'key'
+        """Return an array of rule objects that contain `key`.
         """
         return [l for l in rules.get_leaves() if key in l.keys]
 
     def narrow_buffer(self, section_obj, initial_buffer,
                       recur=False, recpos=0, recdepth=0, excludes=None):
-        """
-        returns a tuple the start and end positions of the scope
-        within the initial_buffer: (startpos, endpos)
+        """Return a tuple for the start and end of the scope.
 
-        exclude rule format: (depth, startpos, endpos)
+        Returns a tuple the start and end positions of the scope
+        within the initial_buffer: (startpos, endpos).
+
+        Exclude rule format: (depth, startpos, endpos).
         """
         excludes = [] if excludes is None else excludes
 
@@ -158,7 +173,7 @@ class ProgDef(object):
                     depth -= 1
 
     def get_proper_buffer(self, initial_buffer, rule_obj):
-        """returns rule_objs scope portion of initial_buffer"""
+        """Return rule_objs scope portion of initial_buffer."""
 
         # hierarchy tree for rule_obj
         scope_tree = rule_obj.get_tree()
@@ -198,9 +213,9 @@ class ProgDef(object):
         return (start_offset, (end-start)+start_offset), exclude_ranges
 
     def _set(self, rule_obj, key, value, _buffer):
-        """
-        set a value to a certain key for
-        a certain rule in the proper scope
+        """Set a `value` to `key` according to `rule_obj`.
+
+        Internal function.
         """
 
         section_exists = self.get_proper_buffer(_buffer, rule_obj)
@@ -251,7 +266,10 @@ class ProgDef(object):
         # return out_buffer
 
     def set(self, key, value, section):
-        """set a value to a certain key"""
+        """Set `value` to `key`.
+
+        Can be overridden if there are specific needs.
+        """
         # Check if filebuffer exists. If not, create one
         self.get_file_buffer()
 
@@ -268,5 +286,8 @@ class ProgDef(object):
             self.filebuff = self._set(rule_obj, key, value, self.filebuff)
 
     def save(self):
-        """this method must be implemented"""
+        """Save the file.
+
+        This method must be overridden.
+        """
         raise NotImplementedError()
