@@ -55,6 +55,16 @@ class i3wm(ProgDef):
                                 'testval3': 1})))
         )
 
+    def is_installed(self):
+        # TODO figure out a better way of doing this that actually works
+        import os
+
+        for p in os.getenv('PATH').split(':'):
+            if os.path.isfile(p + '/i3'):
+                return True
+
+        return False
+
     def get_default_path(self):
         from . import common
         import os

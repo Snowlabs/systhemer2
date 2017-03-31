@@ -41,6 +41,15 @@ class ProgDef(object):
         """
         raise NotImplementedError()
 
+    def is_installed(self):
+        """Check if the program is installed on the target system.
+
+        Returns a boolean.
+
+        This method must be overridden.
+        """
+        raise NotImplementedError()
+
     def get_default_path(self):
         """Return the path to use for configuration.
 

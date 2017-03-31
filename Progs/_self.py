@@ -15,5 +15,8 @@ class _self(ProgDef):
             self.logger.debug('%s<- %s', key, value)
             setattr(self.Settings, key, value)
 
+    def is_installed(self):
+        return True
+
     def save(self):
         return

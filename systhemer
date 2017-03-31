@@ -63,6 +63,10 @@ def parse_args():
                         help='set level of verbosity',
                         action='count',
                         default=0)
+    parser.add_argument('-l',
+                        '--list',
+                        help='list supported programs',
+                        action='store_true',)
     parser.add_argument('--VDEBUG_LVL',
                         help='set VDEBUG_LVL',
                         action='store')
@@ -73,7 +77,8 @@ def parse_args():
                             action='store_true')
     parser.add_argument('path',
                         help='path to theme file',
-                        action='store')
+                        action='store',
+                        nargs='?')
 
     parser.parse_args(namespace=Settings)
     Settings.VDEBUG = Settings.VDEBUG_LVL
@@ -86,6 +91,13 @@ def parse_args():
     Settings.verbose = levels[Settings.verbose] \
         if Settings.verbose in levels else Settings.VDEBUG_LVL
     Settings.theme_file_path = Settings.path
+
+
+def list_progs():
+
+    for p in Progs.prog_defs:
+        if p.is_installed():
+            print(p.get_name())
 
 
 if __name__ == '__main__':
@@ -102,4 +114,8 @@ if __name__ == '__main__':
     if Settings.interactive:
         interactive.iconsole(Settings).cmdloop()
     else:
-        run()
+
+        if Settings.list:
+            list_progs()
+        else:
+            run()
