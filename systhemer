@@ -88,8 +88,12 @@ def parse_args():
     # -vvv : VDEBUG,
     # -v*{anything more} : VDEBUG
     levels = {1: logging.INFO, 2: logging.DEBUG, 3: Settings.VDEBUG_LVL}
-    Settings.verbose = levels[Settings.verbose] \
-        if Settings.verbose in levels else Settings.VDEBUG_LVL
+    if Settings.verbose in levels:
+        Settings.verbose = levels[Settings.verbose]
+    elif Settings.verbose > 3:
+        Settings.verbose = Settings.VDEBUG_LVL
+    else:
+        Settings.verbose = logging.WARNING
     Settings.theme_file_path = Settings.path
 
 
@@ -113,9 +117,11 @@ if __name__ == '__main__':
     Progs.setup(Settings)
     if Settings.interactive:
         interactive.iconsole(Settings).cmdloop()
+    elif Settings.list:
+        list_progs()
     else:
-
-        if Settings.list:
-            list_progs()
-        else:
+        if getattr(Settings, 'path', None):
             run()
+        else:
+            logger.critical('Error argument: \'path\' not specified!')
+            exit(1)
