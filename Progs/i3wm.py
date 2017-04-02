@@ -19,6 +19,14 @@ class i3wm(ProgDef):
                 'focused.text':         (1, 3, def_val),
                 'focused.indicator':    (1, 4, def_val),
                 'focused.child_border': (1, 5, def_val)}),
+            Section(r'([ \t\n]+|^)bar', '{', '}',
+                    Rule(r'test' + space + key, {
+                        'testval': 1}),
+                    Rule(r'test2' + space + key, {
+                        'testval2': 1}),
+                    Section(r'([ \t\n]+|^)subbar', '{', '}',
+                            Rule(r'test3' + space + key, {
+                                'testval3': 1}))),
             Rule(r'client\.focused_inactive' + (space+key)*5, {
                 'focused_inactive.border':       1,
                 'focused_inactive.background':   2,

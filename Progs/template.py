@@ -64,6 +64,13 @@ class ProgDef(object):
         """
         return self.name
 
+    def get_config(self):
+        """Returns the config rule tree.
+
+        Can be overridden if necessary
+        """
+        return self.config
+
     def get_setting(self, setting, default=None, critical=True, msg=None):
         """Get a setting from self.Settings."""
         value = getattr(self.Settings, setting, None)

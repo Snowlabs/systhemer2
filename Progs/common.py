@@ -83,6 +83,12 @@ class ConfigElement(object):
             logger.debug('initializing hierarchy tree...')
             return self.build_hierarchy_tree()
 
+    def __repr__(self):
+        return self.__class__.__name__ + '()'
+
+    def __str__(self):
+        return self.__class__.__name__
+
 
 class RuleTree(ConfigElement):
     """Tree for any subclass of `ConfigElement`.
@@ -102,6 +108,16 @@ class RuleTree(ConfigElement):
         self.rules = args
         for r in self.rules:
             r.parent = self
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(%s)' \
+            % (', '.join(map(lambda r: r.__repr__(), self.rules)))
+
+    def __str__(self):
+        return self.__class__.__name__
+
+    def __len__(self):
+        return len(self.rules)
 
     def __iter__(self):
         return iter(self.rules)
@@ -171,6 +187,10 @@ class Rule(ConfigElement):
         self.keys = keys
         self.logger = logging.getLogger('Systhemer.Progs.common.'
                                         + self.__class__.__name__)
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(%s, %s)' \
+            % (self.rule.__repr__(), self.keys.__repr__())
 
     def _set(self, key, value, _buffer, scope_range, exclude_ranges):
         # Construct a list of all matches of 'rule' in the proper scope that
@@ -310,6 +330,20 @@ class Section(ConfigElement):
         self.separator = separator
         for rule in self.rules:
             rule.parent = self
+
+    def __repr__(self):
+        return self.__class__.__name__ \
+            + '(%s, %s, %s, %s, separator=%s)' \
+            % (self.name.__repr__(), self.startchar.__repr__(),
+               self.endchar.__repr__(),
+               ', '.join([r.__repr__() for r in self.rules]),
+               self.separator.__repr__())
+
+    def __str__(self):
+        return 'r\'%s\' \'%s\' \'%s\'' % (self.name, self.startchar, self.endchar)
+
+    def __len__(self):
+        return len(self.rules)
 
     def __iter__(self):
         return iter(self.rules)
