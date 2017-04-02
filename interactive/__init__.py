@@ -5,6 +5,10 @@ import os
 
 
 class iconsole(cmd.Cmd):
+    intro = 'Welcome to the Systhemer console!'
+    prompt = '> '
+    file = None
+
     def __init__(self, Settings, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.Settings = Settings
@@ -14,12 +18,7 @@ class iconsole(cmd.Cmd):
                          os.listdir('interactive')):
             exec('from .' + cf[:-3] + ' import ' + cf[:-3])
             exec('self.do_' + cf[:-3]
-                 + ' = ' + cf[:-3] + '(Settings).run')
-
-
-    intro = 'Welcome to the Systhemer console!'
-    prompt = '> '
-    file = None
+                 + ' = ' + cf[:-3])
 
     def do_quit(self, args):
         print('exiting interactive mode...')
