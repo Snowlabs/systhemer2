@@ -16,9 +16,11 @@ class iconsole(cmd.Cmd):
         for cf in filter(lambda p: p[-3:] == '.py' and
                          p[:-3] not in ['__init__'],
                          os.listdir('interactive')):
-            exec('from .' + cf[:-3] + ' import ' + cf[:-3])
-            exec('self.do_' + cf[:-3]
-                 + ' = ' + cf[:-3])
+            func_name = cf[:-3]
+            exec('from . import %s' % func_name)
+            func = eval('%s.%s' % (func_name, func_name))
+            setattr(self, 'do_'+func_name,
+                    lambda a: func(self, a))
 
     def do_quit(self, args):
         print('exiting interactive mode...')

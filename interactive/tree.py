@@ -1,7 +1,7 @@
 import Progs
 
 
-def tree(args):
+def tree(self, args):
     args = args.split()
     if len(args) < 1:
         print('Not enough arguments! '
