@@ -19,8 +19,11 @@ class iconsole(cmd.Cmd):
             func_name = cf[:-3]
             exec('from . import %s' % func_name)
             func = eval('{0}.{0}'.format(func_name))
+            # bind function to self.do_{func name}
             setattr(self, 'do_'+func_name,
                     lambda a: func(self, a))
+            # also import its __doc__ (docstring)
+            getattr(self, 'do_'+func_name).__doc__ = func.__doc__
             self.extra_methods.append('do_' + func_name)
         super(self.__class__, self).__init__(*args, **kwargs)
 

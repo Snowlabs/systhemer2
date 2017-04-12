@@ -2,6 +2,11 @@ import Progs
 
 
 def tree(self, args):
+    """usage: tree TARGET
+
+    Illustrate the hierarchy tree of TARGET
+    Inspired by common `tree` command in most unix-based systems
+    """
     args = args.split()
     if len(args) < 1:
         print('Not enough arguments! '
