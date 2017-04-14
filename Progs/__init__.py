@@ -4,7 +4,13 @@ prog_defs = []
 
 
 def setup(Settings):
-    """initializes the prog_defs array"""
+    """Initialize the prog_defs array.
+
+    The prog_defs array contains keyword descriptors for all supported
+    program configuration files (i.e. ProgDefs). A ProgDef can by added
+    by simply adding a '.py' file, it will be parsed.
+    """
+
     import os
     import logging
     global prog_defs
@@ -13,7 +19,7 @@ def setup(Settings):
     logger = logging.getLogger('Systhemer.Progs')
 
     for pf in filter(lambda p: p[-3:] == '.py' and
-                     p[:-3] not in ['__init__', 'template', 'common'],
+                     p[:-3] not in ['__init__', 'template', 'common', 'value'],
                      os.listdir('Progs')):
         logger.debug('found ProgDef: %s', pf)
         exec('from .' + pf[:-3] + ' import ' + pf[:-3])
