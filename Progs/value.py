@@ -33,7 +33,7 @@ class Value(object):
 class Color(Value):
     """Value subclass for colors.
 
-    Stores red, green, blue and alpha channels in separate variables.
+    Stores red, green, blue and alpha channels in separate attributes.
     Range from 0 - 1 each. By default, they are 0, 0, 0 and 1
     respectively.
     """
@@ -71,17 +71,10 @@ class Color(Value):
             self.A = int(color[7:9], 16) / 255
 
     def __getitem__(self, key):
-        if key is 'R':
-            return self.R
-
-        elif key is 'G':
-            return self.G
-
-        elif key is 'B':
-            return self.B
-
-        elif key is 'A':
-            return self.A
+        if key in 'RGBA':
+            return getattr(self, key)
+        else:
+            raise AttributeError()
 
     def get(self, color_format):
         """Return color according to color_format."""

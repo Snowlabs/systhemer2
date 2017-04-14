@@ -1,8 +1,20 @@
 # custom
 files/*.out
+
+# swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
+# session
+Session.vim
+.session.vim
+# temporary
+.netrwhist
+*~
+# auto-generated tag files
 tags
 TAGS
-
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
