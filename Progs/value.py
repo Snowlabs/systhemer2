@@ -22,10 +22,12 @@ class ColorFormat(Enum):
     hexAARRGGBB = 3
     hexRRGGBBAA = 4
 
+
 class Value(object):
 
     def get(self, format):
         raise NotImplementedError()
+
 
 # TODO: logging?
 class Color(Value):
@@ -81,17 +83,15 @@ class Color(Value):
         elif key is 'A':
             return self.A
 
-
     def get(self, color_format):
         """Return color according to color_format."""
 
         r = ''
 
-
         if color_format is ColorFormat.hexRGB:
             r = '#'
 
-            for c in [R, G, B]:
+            for c in [self.R, self.G, self.B]:
                 r += hex(round(c * 16))[2:]
 
         elif color_format is ColorFormat.hexRRGGBB:
@@ -114,6 +114,5 @@ class Color(Value):
             for c in [self.R, self.G, self.B, self.A]:
                 r += '0' if round(c * 255) < 16 else ''
                 r += hex(round(c * 255))[2:]
-
 
         return r
