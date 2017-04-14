@@ -1,6 +1,7 @@
 # custom
-files/*.out 
-
+files/*.out
+tags
+TAGS
 
 
 # Byte-compiled / optimized / DLL files

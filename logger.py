@@ -1,5 +1,6 @@
 import logging
 
+
 def setup_logger(Settings):
 
     logging.addLevelName(Settings.VDEBUG, 'VDEBUG')
