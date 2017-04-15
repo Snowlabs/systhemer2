@@ -9,6 +9,7 @@ e.g. Color, Keybind, etc.
 
 from enum import Enum
 import logging
+import regex as re
 
 
 class Value(object):
@@ -72,29 +73,26 @@ class Color(Value):
         self.color = color
         self.color_format = color_format
 
-        # Check for every supported color format and store accordingly
-        # TODO: implement regex?... maybe...???
-        if color_format is ColorFormat.formats.hexRGB:
-            self.R = int(color[1], 16) / 15
-            self.G = int(color[2], 16) / 15
-            self.B = int(color[3], 16) / 15
+        conversions = {'x': lambda v, l: int(v, 16)/((16**l)-1)}
+        keys_types = {}
+        keys_lengths = {}
 
-        elif color_format is ColorFormat.formats.hexRRGGBB:
-            self.R = int(color[1:3], 16) / 255
-            self.G = int(color[3:5], 16) / 255
-            self.B = int(color[5:7], 16) / 255
+        def subfn(m):
+            print(m.group(1))
+            keys_types[m.group(1)[1]] = m.group(1)[0]
+            keys_lengths[m.group(1)[1]] = len(m.group(1)[1:])
+            return '(?P<%s>%s)' % (m.group(1)[1], (r'.'*len(m.group(1)[1:])))
 
-        elif color_format is ColorFormat.formats.hexAARRGGBB:
-            self.A = int(color[1:3], 16) / 255
-            self.R = int(color[3:5], 16) / 255
-            self.G = int(color[5:7], 16) / 255
-            self.B = int(color[7:9], 16) / 255
-
-        elif color_format is ColorFormat.formats.hexRRGGBBAA:
-            self.R = int(color[1:3], 16) / 255
-            self.G = int(color[3:5], 16) / 255
-            self.B = int(color[5:7], 16) / 255
-            self.A = int(color[7:9], 16) / 255
+        color_format_re = re.sub(r'\{((?:[^}]|\\\})*)\}', subfn, color_format)
+        match = re.search(color_format_re, color)
+        print(match.groupdict())
+        for k in match.groupdict():
+            if k in 'RGBA':
+                setattr(self, k,
+                        conversions[keys_types[k]](
+                            match.groupdict()[k],
+                            keys_lengths[k]))
+        print(self)
 
     def __getitem__(self, key):
         if key in 'RGBA':
