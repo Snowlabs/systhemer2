@@ -340,7 +340,8 @@ class Section(ConfigElement):
                self.separator.__repr__())
 
     def __str__(self):
-        return 'r\'%s\' \'%s\' \'%s\'' % (self.name, self.startchar, self.endchar)
+        return 'r\'%s\' \'%s\' \'%s\'' \
+                % (self.name, self.startchar, self.endchar)
 
     def __len__(self):
         return len(self.rules)
