@@ -8,19 +8,7 @@ e.g. Color, Keybind, etc.
 """
 
 from enum import Enum
-
-
-# TO BE DECIDED
-# This may be removed
-# ColorFormat may also be a subclass of a more varied
-# format class.
-class ColorFormat(Enum):
-    """Enum of supported color formats."""
-
-    hexRGB = 1
-    hexRRGGBB = 2
-    hexAARRGGBB = 3
-    hexRRGGBBAA = 4
+import logging
 
 
 class Value(object):
@@ -29,7 +17,42 @@ class Value(object):
         raise NotImplementedError()
 
 
+# TO BE DECIDED
+# This may be removed
+# ColorFormat may also be a subclass of a more varied
+# format class.
+class ColorFormat(object):
+    class formats:
+        """Enum of supported color formats."""
+
+        hexRGB = '#{xR}{xG}{xB}'
+        hexRRGGBB = '#{xRR}{xGG}{xBB}'
+        hexAARRGGBB = '#{xAA}{xRR}{xGG}{xBB}'
+        hexRRGGBBAA = '#{xRR}{xGG}{xBB}{xAA}'
+
+    def __init__(self, fmat):
+        self.logger = logging.getLogger('Systhemer.value.ColorFormat')
+        self.fmat = fmat
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(\'%s\')' % self.fmat
+
+    def format(self, value):
+        """Return color according to color_format."""
+        values = {}
+        for val in 'RGBA':
+            values.update({
+                'x'+val:     '{:x}'.format(round(value[val] * 16)),
+                'X'+val:     '{:X}'.format(round(value[val] * 16)),
+                'x'+(val*2): '{:0>2x}'.format(round(value[val] * 255)),
+                'X'+(val*2): '{:0>2X}'.format(round(value[val] * 255)),
+                })
+
+        return self.fmat.format(**values)
+
+
 # TODO: logging?
+# TODO: Figure out a better way of parsing the values (better than hardcoding)
 class Color(Value):
     """Value subclass for colors.
 
@@ -48,23 +71,23 @@ class Color(Value):
 
         # Check for every supported color format and store accordingly
         # TODO: implement regex?
-        if color_format is ColorFormat.hexRGB:
+        if color_format is ColorFormat.formats.hexRGB:
             self.R = int(color[1], 16) / 15
             self.G = int(color[2], 16) / 15
             self.B = int(color[3], 16) / 15
 
-        elif color_format is ColorFormat.hexRRGGBB:
+        elif color_format is ColorFormat.formats.hexRRGGBB:
             self.R = int(color[1:3], 16) / 255
             self.G = int(color[3:5], 16) / 255
             self.B = int(color[5:7], 16) / 255
 
-        elif color_format is ColorFormat.hexAARRGGBB:
+        elif color_format is ColorFormat.formats.hexAARRGGBB:
             self.A = int(color[1:3], 16) / 255
             self.R = int(color[3:5], 16) / 255
             self.G = int(color[5:7], 16) / 255
             self.B = int(color[7:9], 16) / 255
 
-        elif color_format is ColorFormat.hexRRGGBBAA:
+        elif color_format is ColorFormat.formats.hexRRGGBBAA:
             self.R = int(color[1:3], 16) / 255
             self.G = int(color[3:5], 16) / 255
             self.B = int(color[5:7], 16) / 255
@@ -74,38 +97,5 @@ class Color(Value):
         if key in 'RGBA':
             return getattr(self, key)
         else:
-            raise AttributeError()
+            raise KeyError()
 
-    def get(self, color_format):
-        """Return color according to color_format."""
-
-        r = ''
-
-        if color_format is ColorFormat.hexRGB:
-            r = '#'
-
-            for c in [self.R, self.G, self.B]:
-                r += hex(round(c * 16))[2:]
-
-        elif color_format is ColorFormat.hexRRGGBB:
-            r = '#'
-
-            for c in [self.R, self.G, self.B]:
-                r += '0' if round(c * 255) < 16 else ''
-                r += hex(round(c * 255))[2:]
-
-        elif color_format is ColorFormat.hexAARRGGBB:
-            r = '#'
-
-            for c in [self.A, self.R, self.G, self.B]:
-                r += '0' if round(c * 255) < 16 else ''
-                r += hex(round(c * 255))[2:]
-
-        elif color_format is ColorFormat.hexRRGGBBAA:
-            r = '#'
-
-            for c in [self.R, self.G, self.B, self.A]:
-                r += '0' if round(c * 255) < 16 else ''
-                r += hex(round(c * 255))[2:]
-
-        return r
