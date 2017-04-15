@@ -69,8 +69,11 @@ class Color(Value):
     def __init__(self, color, color_format):
         """Convert color according to color_format."""
 
+        self.color = color
+        self.color_format = color_format
+
         # Check for every supported color format and store accordingly
-        # TODO: implement regex?
+        # TODO: implement regex?... maybe...???
         if color_format is ColorFormat.formats.hexRGB:
             self.R = int(color[1], 16) / 15
             self.G = int(color[2], 16) / 15
@@ -99,3 +102,10 @@ class Color(Value):
         else:
             raise KeyError()
 
+    def __repr__(self):
+        return self.__class__.__name__ + '(\'%s\', \'%s\')' \
+                % (self.color, self.color_format)
+
+    def __str__(self):
+        return self.__class__.__name__ + '(%f, %f, %f, %f)' \
+                % (self.R, self.G, self.B, self.A)
