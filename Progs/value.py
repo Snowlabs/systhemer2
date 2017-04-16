@@ -8,6 +8,7 @@ e.g. Color, Keybind, etc.
 """
 
 from enum import Enum
+from . import common
 import logging
 import regex as re
 
@@ -43,8 +44,8 @@ class ColorFormat(object):
         values = {}
         for val in 'RGBA':
             values.update({
-                'x'+val:     '{:x}'.format(round(value[val] * 16)),
-                'X'+val:     '{:X}'.format(round(value[val] * 16)),
+                'x'+val:     '{:x}'.format(round(value[val] * (16**1)-1)),
+                'X'+val:     '{:X}'.format(round(value[val] * 15)),
                 'x'+(val*2): '{:0>2x}'.format(round(value[val] * 255)),
                 'X'+(val*2): '{:0>2X}'.format(round(value[val] * 255)),
                 })
@@ -69,30 +70,46 @@ class Color(Value):
 
     def __init__(self, color, color_format):
         """Convert color according to color_format."""
-
-        self.color = color
-        self.color_format = color_format
-
-        conversions = {'x': lambda v, l: int(v, 16)/((16**l)-1)}
-        keys_types = {}
-        keys_lengths = {}
+        # macros
+        def convert(string, length, base):
+            return int(string, base)/((base**length)-1)
 
         def subfn(m):
-            print(m.group(1))
             keys_types[m.group(1)[1]] = m.group(1)[0]
             keys_lengths[m.group(1)[1]] = len(m.group(1)[1:])
             return '(?P<%s>%s)' % (m.group(1)[1], (r'.'*len(m.group(1)[1:])))
+        # end macros
 
+        # save the arguments
+        self.color = color
+        self.color_format = color_format
+        # get logger
+        self.logger = logging.getLogger('Systhemer.value.ColorFormat')
+
+        # === Parse the `color` string to extract the RGBA values
+        # dict of shorthands for getting values of different bases
+        conversions = {'x': lambda v, l: convert(v, l, 16)}
+        keys_types = {}
+        keys_lengths = {}
+
+        # generate regular expression
+        # looking for groups delimited by `{}`
+        # and passing the match objs to subfn
         color_format_re = re.sub(r'\{((?:[^}]|\\\})*)\}', subfn, color_format)
+
+        # extract values from `color` string using generated regexpr
         match = re.search(color_format_re, color)
-        print(match.groupdict())
+        self.logger.log(common.Settings.VDEBUG, match.groupdict())
+
         for k in match.groupdict():
             if k in 'RGBA':
-                setattr(self, k,
-                        conversions[keys_types[k]](
-                            match.groupdict()[k],
-                            keys_lengths[k]))
-        print(self)
+                convert_fun = conversions[keys_types[k]]
+                attr_val = convert_fun(
+                        match.groupdict()[k],  # value
+                        keys_lengths[k])       # length
+                setattr(self, k, attr_val)  # set value to self.{KEY}
+        self.logger.log(common.Settings.VDEBUG, self)
+        # === RGBA values extracted
 
     def __getitem__(self, key):
         if key in 'RGBA':
