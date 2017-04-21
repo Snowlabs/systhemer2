@@ -92,9 +92,11 @@ todo_include_todos = True
 # html_theme = 'sphinx_rtd_theme'
 # html_theme = 'classic'
 
-html_static_path = []
-html_theme_path = ['_themes']
+#html_static_path = []
+#html_theme_path = ['_themes']
+import snowlabs
 html_theme = 'snowlabs'
+html_theme_path = [snowlabs.get_html_theme_path()]
 
 # import sphinx_py3doc_enhanced_theme
 # html_theme = 'sphinx_py3doc_enhanced_theme'
