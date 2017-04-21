@@ -7,6 +7,7 @@ subclass of Value defines a certain configuration value to be parsed.
 e.g. Color, Keybind, etc.
 """
 
+import itertools
 from enum import Enum
 from . import common
 import logging
@@ -24,6 +25,9 @@ class Value(object):
 # ColorFormat may also be a subclass of a more varied
 # format class.
 class ColorFormat(object):
+    bases = {'x': 16, 'X': 16, 'd': 10}
+    max_digits = 2
+
     class formats:
         """Enum of supported color formats."""
 
@@ -47,24 +51,31 @@ class ColorFormat(object):
             return (base**length)-1
 
         values = {}
-        for val in 'RGBA':
-            values.update({
-                'x'+val:
-                    '{:x}'.format(round(value[val] * getmax(16, 1))),
-                'X'+val:
-                    '{:X}'.format(round(value[val] * getmax(16, 1))),
-                'x'+(val*2):
-                    '{:0>2x}'.format(round(value[val] * getmax(16, 2))),
-                'X'+(val*2):
-                    '{:0>2X}'.format(round(value[val] * getmax(16, 2))),
-                })
 
+        keys = 'RGBA'
+        range_digits = range(1, self.max_digits+1)
+
+        for val, bchar, num_digits in itertools.product(keys,
+                                                        self.bases,
+                                                        range_digits):
+            # key
+            k = bchar + (val * num_digits)
+
+            # generate format and apply it with values from `value`
+            fmat = '{:0>%s%s}' % (num_digits, bchar)
+            mult = getmax(self.bases[bchar], num_digits)
+            v = fmat.format(round(value[val] * mult))
+
+            # save pair in `values`
+            values[k] = v
+
+        # apply format with pre-formatted values
         return self.fmat.format(**values)
 
     def parse(self, string):
         """Parse `string` with format and extract rgba values"""
-        def convert(string, length, base):
-            return int(string, base)/((base**length)-1)
+        def convert(string, base):
+            return int(string, base)/((base**len(string))-1)
 
         def subfn(m):
             key_type = m.group(1)[0].lower()
@@ -72,14 +83,14 @@ class ColorFormat(object):
             digits = len(m.group(1)[1:])
 
             keys_types[key] = key_type
-            keys_lengths[key] = digits
             return '(?P<%s>%s)' % (key, (r'.'*digits))
 
         # dict of shorthands for getting values of different bases
-        conversions = {'x': lambda v, l: convert(v, l, 16),
-                       'd': lambda v, l: convert(v, l, 10), }
+        conversions = {}
+        for bchar, base in self.bases.items():
+            conversions[bchar] = lambda v, b=base: convert(v, b)
+
         keys_types = {}
-        keys_lengths = {}
 
         # generate regular expression
         # looking for groups delimited by `{}`
@@ -93,12 +104,12 @@ class ColorFormat(object):
         # construct out_obj Color object
         out_obj = Color()
 
-        for k in match.groupdict():
+        for k, value in match.groupdict().items():
             if k in 'RGBA':
-                convert_fun = conversions[keys_types[k]]
-                attr_val = convert_fun(
-                        match.groupdict()[k],  # value
-                        keys_lengths[k])       # length
+                k_type = keys_types[k]
+
+                convert_fun = conversions[k_type]
+                attr_val = convert_fun(value)
 
                 out_obj[k] = attr_val  # set value to out_obj.{KEY}
         self.logger.log(common.Settings.VDEBUG, out_obj)
