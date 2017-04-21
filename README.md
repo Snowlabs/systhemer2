@@ -1,6 +1,6 @@
 <a href="https://waffle.io/Javyre/systhemer"><img src="https://badge.waffle.io/Javyre/systhemer2.png?label=ready&title=Ready" alt="Waffle.io"></a>
 
-<p align="center"><img src="https://github.com/Javyre/systhemer2/raw/master/assets/SysthemerLogoNoCirle.png" alt="Systhemer"/></p>
+<p align="center"><img src="https://github.com/Javyre/systhemer2/raw/master/assets/SysthemerLogoNoCircle.png" alt="Systhemer"/></p>
 
 ***
 
@@ -17,8 +17,8 @@ A system theming utility designed for ease of sharing
 
 ## What is this?
 Systhemer is a system theming utility that is designed to be easily
-extended for support for new programs by the community and for ease 
-of sharing of user themes. 
+extended for support for new programs by the community and for ease
+of sharing of user themes.
 
 Our goal is to make sharing system configurations to others easier than
 ever: just apply your `{theme-name}.toml` and BAM you're done!
