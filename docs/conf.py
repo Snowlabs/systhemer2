@@ -21,6 +21,8 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
+sys.path.append(os.path.abspath("_themes"))
+
 
 # -- General configuration ------------------------------------------------
 
@@ -32,9 +34,9 @@ sys.path.insert(0, os.path.abspath('..'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage']
+              'sphinx.ext.doctest',
+              'sphinx.ext.todo',
+              'sphinx.ext.coverage']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -89,9 +91,17 @@ todo_include_todos = True
 # import sphinx_rtd_theme
 # html_theme = 'sphinx_rtd_theme'
 # html_theme = 'classic'
-import sphinx_py3doc_enhanced_theme
-html_theme = 'sphinx_py3doc_enhanced_theme'
-html_theme_path = [sphinx_py3doc_enhanced_theme.get_html_theme_path()]
+
+
+html_theme_path = ['_themes']
+html_theme = 'snowlabs'
+
+# import sphinx_py3doc_enhanced_theme
+# html_theme = 'sphinx_py3doc_enhanced_theme'
+# html_theme_path = [sphinx_py3doc_enhanced_theme.get_html_theme_path()]
+
+
+
 # html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -102,16 +112,16 @@ html_theme_path = [sphinx_py3doc_enhanced_theme.get_html_theme_path()]
 # html_theme_options = {
 #     'collapsiblesidebar': 'true'
 # }
-html_theme_options = {
-    'bodyfont': '"Lucida Grande",Arial,sans-serif',
-    'headfont': '"Lucida Grande",Arial,sans-serif',
-    'codefont': 'monospace,sans-serif',
-    'linkcolor': '#0072AA',
-    'visitedlinkcolor': '#6363bb',
-    'extrastyling': False,
-    'appendcss': '.sphinxsidebar {box-shadow: none;}',
-}
-pygments_style = 'friendly'
+# html_theme_options = {
+#     'bodyfont': '"Lucida Grande",Arial,sans-serif',
+#     'headfont': '"Lucida Grande",Arial,sans-serif',
+#     'codefont': 'monospace,sans-serif',
+#     'linkcolor': '#0072AA',
+#     'visitedlinkcolor': '#6363bb',
+#     'extrastyling': False,
+#     'appendcss': '.sphinxsidebar {box-shadow: none;}',
+# }
+# pygments_style = 'friendly'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -177,3 +187,15 @@ texinfo_documents = [
 
 
 
+from docutils.nodes import raw as raw_node
+
+
+def role_font_awesome(name, rawtext, text, lineno, inliner,
+                      options={}, content=[]):
+    print(rawtext, text, options)
+    html = "<i class=\"fa fa-%s\"></i>" % text
+    return [raw_node(text=html, format='html')], []
+
+
+def setup(app):
+    app.add_role("fa", role_font_awesome)

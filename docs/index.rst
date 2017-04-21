@@ -3,8 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+|
+|
+
+.. image:: ../assets/SysthemerLogoNoCircle.png
+  :width: 200pt
+  :align: center
+
+|
+|
+
 Systhemer
 =========
+
+
 
 Systhemer, a system theming utility designed for ease of sharing!
 
@@ -19,9 +31,9 @@ External Links:
 Progs Modules
 -------------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
-   Progs
+   Progs/Progs
 
 .. _Github repo: https://github.com/Javyre/systhemer2
 .. _User wiki: https://github.com/Javyre/systhemer2/wiki

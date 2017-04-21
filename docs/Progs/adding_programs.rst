@@ -1,12 +1,5 @@
-=====
-Progs
-=====
-
-.. _common:
-
----------------
-Adding Programs
----------------
+:fa:`plus` Adding Programs
+===========================
 
 Additional programs must be stored under the `Progs` directory. A basic
 program is a subclass of `ProgDef` (defined under `template.py`) and
@@ -18,8 +11,10 @@ the subclass must be the same name as the binary.
 Defining programs is explained in the next section
 
 
+.. _example:
+
 Example
-=======
+-------
 
 Let's explain using an example module, for the program `example`.
 
@@ -29,7 +24,7 @@ Let's explain using an example module, for the program `example`.
     from .common import RuleTree, Rule, RuleVLen, Section
 
     class example(ProgDef):
-        
+
         def init(self):
             # implementation
 
@@ -40,32 +35,3 @@ Let's explain using an example module, for the program `example`.
             # implementation
 
 
-------
-Common
-------
-.. automodule:: Progs.common
-
-.. autoclass:: ConfigElement
-    :members:
-
-.. autoclass:: RuleTree
-    :members:
-
-.. autoclass:: Rule
-    :members:
-
-.. autoclass:: RuleVLen
-    :members:
-
-.. autoclass:: Section
-    :members:
-
-.. _template:
-
---------
-Template
---------
-.. automodule:: Progs.template
-
-.. autoclass:: ProgDef
-    :members:
