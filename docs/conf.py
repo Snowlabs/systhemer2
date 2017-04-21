@@ -92,7 +92,7 @@ todo_include_todos = True
 # html_theme = 'sphinx_rtd_theme'
 # html_theme = 'classic'
 
-
+html_static_path = []
 html_theme_path = ['_themes']
 html_theme = 'snowlabs'
 
