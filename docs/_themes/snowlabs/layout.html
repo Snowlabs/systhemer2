@@ -186,11 +186,11 @@
     <script type="text/javascript" src="{{ pathto('_static/js/theme.js', 1) }}"></script>
   {% endif %}
 
-  {# STICKY NAVIGATION #}
+  {# STICKY NAVIGATION (rtd breaks sticky navigation bar) #}
   {% if theme_sticky_navigation %}
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxSlabsTheme.StickyNav.enable();
       });
   </script>
   {% endif %}
