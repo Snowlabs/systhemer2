@@ -97,9 +97,6 @@ todo_include_todos = True
 import snowlabs
 html_theme = 'snowlabs'
 html_theme_path = [snowlabs.get_html_theme_path()]
-html_theme_options = {
-        'sticky_navigation': True
-}
 # import sphinx_py3doc_enhanced_theme
 # html_theme = 'sphinx_py3doc_enhanced_theme'
 # html_theme_path = [sphinx_py3doc_enhanced_theme.get_html_theme_path()]

@@ -138,3 +138,15 @@ p {
     font-size: 1em;
 }
 
+/* navbar sticky */
+.wy-nav-side {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    overflow: hidden;
+    min-height: 100%;
+    background: #eee;
+    z-index: 200;
+}
+
