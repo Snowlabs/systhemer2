@@ -28,33 +28,12 @@ External Links:
 * `Github repo`_
 * `User wiki`_
 
-Progs Modules
--------------
+Progs Modules:
+--------------
 .. toctree::
    :maxdepth: 4
 
-   Progs/Progs
+   Progs/index
 
 .. _Github repo: https://github.com/Javyre/systhemer2
 .. _User wiki: https://github.com/Javyre/systhemer2/wiki
-
-..
-   Welcome to Systhemer's documentation!
-   =====================================
-
-   .. toctree::
-      :maxdepth: 2
-      :caption: Contents:
-
-   .. autofunction:: run
-
-   .. automodule:: Progs.common
-      :members:
-
-
-   Indices and tables
-   ==================
-
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`

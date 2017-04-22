@@ -1,6 +1,6 @@
 """Templates for configuring program function
 
-Every program definition must inherit from the `ProgDef` class
+Every program definition must inherit from the :class:`ProgDef` class
 """
 import logging
 import re
@@ -16,7 +16,7 @@ class ProgDef(object):
     (see already written definitions for example implementation).
 
     If a program definition needs special handling, you may
-    override the set method.
+    override the :meth:`set` method.
     """
 
     def __init__(self, Settings, *args, **kwargs):

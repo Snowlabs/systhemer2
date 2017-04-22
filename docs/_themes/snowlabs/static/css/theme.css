@@ -78,22 +78,31 @@ article,aside,details,figcaption,figure,footer,header,hgroup,nav,section{display
     font-family: Incosolata,Consolata,Monaco,monospace;
 }
 
+/* code */
+code {
+    white-space: nowrap;
+    font-size: 90%;
+    font-family: Incosolata,Consolata,Monaco,monospace;
+    color: #3480b9;
+}
+
 /* classes */
-.rst-content dl:not(.docutils) dt {
-    display: inline-block;
-    margin: 6px 0;
+.descclassname {
+    white-space: nowrap;
+    max-width: 100%;
+    background: #fff;
+    border: 1px solid #e1e4e5;
     font-size: 90%;
     line-height: normal;
-    background: #e7f2fa;
-    color: #2980b9;
-    border-top: solid 3px #6ab0de;
-    padding: 6px;
-    position: relative;
+    padding: 2px 5px;
     font-family: Incosolata,Consolata,Monaco,monospace;
+    color: #e74c3c;
+    overflow-x: auto;
+    padding-right: 0;
 }
 
 /* names */
-.rst-content tt, code {
+.descname {
     white-space: nowrap;
     max-width: 100%;
     background: #fff;
@@ -148,5 +157,30 @@ p {
     min-height: 100%;
     background: #eee;
     z-index: 200;
+}
+
+/* .wy-menu-vertical .toctree-l2.current{ */
+/*   padding-left: 8px; */
+/* } */
+
+.wy-menu-vertical li.toctree-l1 > a {
+    padding-left: 1.4em !important;
+}
+.wy-menu-vertical li.toctree-l2 > a {
+    padding-left: 2.2em !important;
+}
+.wy-menu-vertical li.toctree-l3 > a {
+    padding-left: 3.0em !important;
+}
+.wy-menu-vertical li.toctree-l4 > a {
+    padding-left: 4.0em !important;
+}
+
+.wy-menu-vertical li.current > a, .wy-menu-vertical li.on a {
+    color: #333;
+    padding: .5em 2.427em;
+    font-weight: 700;
+    position: relative;
+    border: none;
 }
 
