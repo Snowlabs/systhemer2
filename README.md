@@ -45,13 +45,29 @@ Just run the program with the path to the theme to be apppied as the argument an
 ## Development Status:
 Systhemer is in early development and doesn't yet include all the feature that are planned for it.
 
-Here's some of what we have in plan for it in the future:
+Things to do for a proper release, in order of priority starting from highest.
+
+| Feature | Status |
+| ------- | ------ |
+| Implement color formats for config rules | Not Started |
+| Restructure project for improved modularity | Not Started |
+| Add proper code documentation on RTD | WIP |
+| Refactor code for readability | WIP |
+| Backup existing config | Not Started |
+| Support for XML | Not Started |
+
+Here are the program definitions which are currently planned for addition.
 
 | Feature | Status |
 |---------|--------|
-| Backup existing config | In Progress |
-| Support for XML | Not Started |
-| OpenBox support | Not Started |
-| Xresources support | Not Started |
-| bspwm support | Not Started |
-| rofi support | Not Started |
+| OpenBox | Not Started |
+| Xresources | Not Started |
+| bspwm | Not Started |
+| rofi | Not Started |
+
+Optional features planned for future versions.
+
+| Feature |
+| ------- |
+| Pipline injection |
+| Alternative backends |
