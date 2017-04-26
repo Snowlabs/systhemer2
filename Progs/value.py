@@ -43,8 +43,20 @@ class ColorFormat(object):
     def __repr__(self):
         return self.__class__.__name__ + '(\'%s\')' % self.fmat
 
-    def format(self, value):
+    def format(self, value, pipeline=False):
         """Return color according to color_format."""
+
+        class pipelineable_object(object):
+            def __init__(self, fmat_obj, string_value):
+                self.str = string_value
+                self.fmat = fmat_obj
+            def __str__(self):
+                return self.str
+            def __repr__(self):
+                # imperfect repr function...
+                return 'pipelineable_object(\'' + self.str + '\')'
+            def parse(self):
+                return self.fmat.parse(self.str)
 
         # return max value possible for number of `base` and of `length` digits
         def getmax(base, length):
@@ -70,7 +82,11 @@ class ColorFormat(object):
             values[k] = v
 
         # apply format with pre-formatted values
-        return self.fmat.format(**values)
+        out_str = self.fmat.format(**values)
+
+        if pipeline:
+            return pipelineable_object(self, out_str)
+        return out_str
 
     def parse(self, string):
         """Parse `string` with format and extract rgba values"""
@@ -200,7 +216,7 @@ class Color(Value):
     def __str__(self):
         return repr(self)
 
-    def format(self, fmat):
+    def format(self, fmat, pipeline=False):
         """Calls formatter.format to allow pipeline structured code.
 
         Essentially reverses the fmatter.format(value_obj)
@@ -210,6 +226,6 @@ class Color(Value):
         will be generated or it can be a formatter object directly
         """
         if type(fmat) is str:
-            return ColorFormat(fmat).format(self)
+            return ColorFormat(fmat).format(self, pipeline=pipeline)
         elif isinstance(fmat, ColorFormat):
-            return fmat.format(self)
+            return fmat.format(self, pipeline=pipeline)
