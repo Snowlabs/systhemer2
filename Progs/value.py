@@ -14,6 +14,35 @@ import logging
 import regex as re
 
 
+class PipelineableObject(object):
+    def __init__(self, fmat_obj, obj):
+        self.obj = obj
+        self.fmat = fmat_obj
+
+    def __str__(self):
+        return 'pipelineable_object ' + str(self.obj)
+
+    def __repr__(self):
+        # imperfect repr function...
+        return 'pipelineable_object(\'' + repr(self.str) + '\')'
+
+    def non_existant(self, meth_name):
+        raise AttributeError('This PipelineableObject object does '
+                             'not contain method: \'%s()\'!' % meth_name)
+
+    def format(self, pipeline=False):
+        if isinstance(self.obj, Value):
+            return self.fmat.format(self.obj, pipeline=pipeline)
+        else:
+            self.non_existant('format')
+
+    def parse(self, pipeline=False):
+        if isinstance(self.obj, str):
+            return self.fmat.parse(self.obj, pipeline=pipeline)
+        else:
+            self.non_existant('parse')
+
+
 class Value(object):
 
     def get(self, format):
@@ -46,21 +75,6 @@ class ColorFormat(object):
     def format(self, value, pipeline=False):
         """Return color according to color_format."""
 
-        class pipelineable_object(object):
-            def __init__(self, fmat_obj, string_value):
-                self.str = string_value
-                self.fmat = fmat_obj
-
-            def __str__(self):
-                return 'pipelineable_object ' + self.str
-
-            def __repr__(self):
-                # imperfect repr function...
-                return 'pipelineable_object(\'' + self.str + '\')'
-
-            def parse(self, pipeline=False):
-                return self.fmat.parse(self.str, pipeline=pipeline)
-
         # return max value possible for number of `base` and of `length` digits
         def getmax(base, length):
             return (base**length)-1
@@ -88,27 +102,11 @@ class ColorFormat(object):
         out_str = self.fmat.format(**values)
 
         if pipeline:
-            return pipelineable_object(self, out_str)
+            return PipelineableObject(self, out_str)
         return out_str
 
     def parse(self, string, pipeline=False):
         """Parse `string` with format and extract rgba values"""
-
-        class pipelineable_object(object):
-            def __init__(self, fmat_obj, value_obj):
-                self.val = value_obj
-                self.fmat = fmat_obj
-
-            def __str__(self):
-                return 'pipelineable_object ' + str(self.val)
-
-            def __repr__(self):
-                # imperfect repr function...
-                return 'pipelineable_object(\'' + repr(self.val) + '\')'
-
-            def format(self, pipeline=False):
-                # return self.fmat.parse(self.str)
-                return self.fmat.format(self.val, pipeline=pipeline)
 
         def convert(string, base):
             return int(string, base)/((base**len(string))-1)
@@ -151,7 +149,7 @@ class ColorFormat(object):
         self.logger.log(common.Settings.VDEBUG, out_obj)
 
         if pipeline:
-            return pipelineable_object(self, out_obj)
+            return PipelineableObject(self, out_obj)
         return out_obj
 
 
