@@ -44,113 +44,56 @@ class PipelineableObject(object):
 
 
 class Value(object):
+    class Formats:
+        """Implementation not necessary but makes code more readable"""
+        pass
 
-    def get(self, format):
+    class Formatter(object):
+        def __init__(self, fmat):
+            # For now, (until i can figure it out,) it displays logger class
+            # as Systhemer.value.Value.Formatter instead of actual
+            # instance parent class name :(
+            # TODO: fix issue explained above
+            self.logger = logging.getLogger('Systhemer.value.%s.%s'
+                                            % ('Value',  # fix this!
+                                               self.__class__.__name__))
+            self.logger.info('test')
+            self.fmat = fmat
+
+        def __repr__(self):
+            return self.__class__.__name__ + '(\'%s\')' % self.fmat
+
+        def format(self, value, pipeline=False):
+            """Must be implemented"""
+            raise NotImplementedError()
+
+        def parse(self, string, pipeline=False):
+            """Must be implemented"""
+            raise NotImplementedError()
+
+    def __init__(self, *args, **kwargs):
+        """Must be implemented"""
         raise NotImplementedError()
 
+    def __getitem__(self, key):
+        """Must be implemented"""
+        raise NotImplementedError()
 
-# TO BE DECIDED
-# This may be removed
-# ColorFormat may also be a subclass of a more varied
-# format class.
-class ColorFormat(object):
-    bases = {'x': 16, 'X': 16, 'd': 10}
-    max_digits = 2
-
-    class formats:
-        """Enum of supported color formats."""
-
-        hexRGB = '#{xR}{xG}{xB}'
-        hexRRGGBB = '#{xRR}{xGG}{xBB}'
-        hexAARRGGBB = '#{xAA}{xRR}{xGG}{xBB}'
-        hexRRGGBBAA = '#{xRR}{xGG}{xBB}{xAA}'
-
-    def __init__(self, fmat):
-        self.logger = logging.getLogger('Systhemer.value.ColorFormat')
-        self.fmat = fmat
+    def __setitem__(self, key, value):
+        """Must be implemented"""
+        raise NotImplementedError()
 
     def __repr__(self):
-        return self.__class__.__name__ + '(\'%s\')' % self.fmat
+        """Must be implemented"""
+        raise NotImplementedError()
 
-    def format(self, value, pipeline=False):
-        """Return color according to color_format."""
+    def __str__(self):
+        """Must be implemented"""
+        raise NotImplementedError()
 
-        # return max value possible for number of `base` and of `length` digits
-        def getmax(base, length):
-            return (base**length)-1
-
-        values = {}
-
-        keys = 'RGBA'
-        range_digits = range(1, self.max_digits+1)
-
-        for val, bchar, num_digits in itertools.product(keys,
-                                                        self.bases,
-                                                        range_digits):
-            # key
-            k = bchar + (val * num_digits)
-
-            # generate format and apply it with values from `value`
-            fmat = '{:0>%s%s}' % (num_digits, bchar)
-            mult = getmax(self.bases[bchar], num_digits)
-            v = fmat.format(round(value[val] * mult))
-
-            # save pair in `values`
-            values[k] = v
-
-        # apply format with pre-formatted values
-        out_str = self.fmat.format(**values)
-
-        if pipeline:
-            return PipelineableObject(self, out_str)
-        return out_str
-
-    def parse(self, string, pipeline=False):
-        """Parse `string` with format and extract rgba values"""
-
-        def convert(string, base):
-            return int(string, base)/((base**len(string))-1)
-
-        def subfn(m):
-            key_type = m.group(1)[0].lower()
-            key = m.group(1)[1]
-            digits = len(m.group(1)[1:])
-
-            keys_types[key] = key_type
-            return '(?P<%s>%s)' % (key, (r'.'*digits))
-
-        # dict of shorthands for getting values of different bases
-        conversions = {}
-        for bchar, base in self.bases.items():
-            conversions[bchar] = lambda v, b=base: convert(v, b)
-
-        keys_types = {}
-
-        # generate regular expression
-        # looking for groups delimited by `{}`
-        # and passing the match objs to subfn
-        color_format_re = re.sub(r'\{((?:[^}]|\\\})*)\}', subfn, self.fmat)
-
-        # extract values from `color` string using generated regexpr
-        match = re.search(color_format_re, string)
-        self.logger.log(common.Settings.VDEBUG, match.groupdict())
-
-        # construct out_obj Color object
-        out_obj = Color()
-
-        for k, value in match.groupdict().items():
-            if k in 'RGBA':
-                k_type = keys_types[k]
-
-                convert_fun = conversions[k_type]
-                attr_val = convert_fun(value)
-
-                out_obj[k] = attr_val  # set value to out_obj.{KEY}
-        self.logger.log(common.Settings.VDEBUG, out_obj)
-
-        if pipeline:
-            return PipelineableObject(self, out_obj)
-        return out_obj
+    def format(self, fmat, pipeline=False):
+        """Must be implemented"""
+        raise NotImplementedError()
 
 
 class Color(Value):
@@ -165,6 +108,99 @@ class Color(Value):
     G = 0
     B = 0
     A = 1
+
+    class formats:
+        """Enum of supported color formats."""
+
+        hexRGB = '#{xR}{xG}{xB}'
+        hexRRGGBB = '#{xRR}{xGG}{xBB}'
+        hexAARRGGBB = '#{xAA}{xRR}{xGG}{xBB}'
+        hexRRGGBBAA = '#{xRR}{xGG}{xBB}{xAA}'
+
+    class Formatter(Value.Formatter):
+        bases = {'x': 16, 'X': 16, 'd': 10}
+        max_digits = 2
+
+        def format(self, value, pipeline=False):
+            """Return color according to color_format."""
+
+            # return max value possible for number of `base`
+            # and of `length` digits
+            def getmax(base, length):
+                return (base**length)-1
+
+            values = {}
+
+            keys = 'RGBA'
+            range_digits = range(1, self.max_digits+1)
+
+            for val, bchar, num_digits in itertools.product(keys,
+                                                            self.bases,
+                                                            range_digits):
+                # key
+                k = bchar + (val * num_digits)
+
+                # generate format and apply it with values from `value`
+                fmat = '{:0>%s%s}' % (num_digits, bchar)
+                mult = getmax(self.bases[bchar], num_digits)
+                v = fmat.format(round(value[val] * mult))
+
+                # save pair in `values`
+                values[k] = v
+
+            # apply format with pre-formatted values
+            out_str = self.fmat.format(**values)
+
+            if pipeline:
+                return PipelineableObject(self, out_str)
+            return out_str
+
+        def parse(self, string, pipeline=False):
+            """Parse `string` with format and extract rgba values"""
+
+            def convert(string, base):
+                return int(string, base)/((base**len(string))-1)
+
+            def subfn(m):
+                key_type = m.group(1)[0].lower()
+                key = m.group(1)[1]
+                digits = len(m.group(1)[1:])
+
+                keys_types[key] = key_type
+                return '(?P<%s>%s)' % (key, (r'.'*digits))
+
+            # dict of shorthands for getting values of different bases
+            conversions = {}
+            for bchar, base in self.bases.items():
+                conversions[bchar] = lambda v, b=base: convert(v, b)
+
+            keys_types = {}
+
+            # generate regular expression
+            # looking for groups delimited by `{}`
+            # and passing the match objs to subfn
+            color_format_re = re.sub(r'\{((?:[^}]|\\\})*)\}', subfn, self.fmat)
+
+            # extract values from `color` string using generated regexpr
+            match = re.search(color_format_re, string)
+            self.logger.log(common.Settings.VDEBUG, match.groupdict())
+
+            # construct out_obj Color object
+            out_obj = Color()
+
+            for k, value in match.groupdict().items():
+                if k in 'RGBA':
+                    k_type = keys_types[k]
+
+                    convert_fun = conversions[k_type]
+                    attr_val = convert_fun(value)
+
+                    out_obj[k] = attr_val  # set value to out_obj.{KEY}
+            self.logger.log(common.Settings.VDEBUG, out_obj)
+
+            if pipeline:
+                return PipelineableObject(self, out_obj)
+            return out_obj
 
     def __init__(self, *args, **kwargs):
         """Set RGBA values according to tuple of floats from 0 to 1
@@ -248,6 +284,6 @@ class Color(Value):
         """
 
         if type(fmat) is str:
-            return ColorFormat(fmat).format(self, pipeline=pipeline)
-        elif isinstance(fmat, ColorFormat):
+            return self.Formatter(fmat).format(self, pipeline=pipeline)
+        elif isinstance(fmat, Value.Formatter):
             return fmat.format(self, pipeline=pipeline)
