@@ -14,6 +14,7 @@ Classes:
 
 import logging
 import regex
+from . import value as value_
 logger = logging.getLogger('Systhemer.Progs.common')
 Settings = None
 
@@ -187,6 +188,8 @@ class Rule(ConfigElement):
         self.keys = keys
         self.logger = logging.getLogger('Systhemer.Progs.common.'
                                         + self.__class__.__name__)
+        self.build_rule_rgx()
+        self.build_formats()
 
     def __repr__(self):
         return self.__class__.__name__ + '(%s, %s)' \
@@ -195,11 +198,34 @@ class Rule(ConfigElement):
     def __str__(self):
         return self.__class__.__name__
 
+    def build_rule_rgx(self):
+        """Build rule regexpr."""
+        rule = ''
+        for e in self.rule:
+            if type(e) is str:
+                rule += e
+            elif isinstance(e, value_.Value.Formatter):
+                rule += e.get_rgx()
+            else:
+                self.logger.critical('Invalid value type in rule')
+                exit(1)
+
+        self.rule_rgx = rule
+
+    def build_formats(self):
+        formats = []
+        for e in self.rule:
+            if isinstance(e, value_.Value.Formatter):
+                formats.append(e)
+
+        self.formats = formats
+
     def get_matches(self, _buffer, scope_range, exclude_ranges):
         # Construct a list of all matches of 'rule' in the proper scope that
         # aren't excluded by any of the rules in exclude_ranges
         matches = []
-        for m in regex.finditer(self.rule,
+
+        for m in regex.finditer(self.rule_rgx,
                                 _buffer[scope_range[0]:scope_range[1]]):
             excs = [utils.is_excluded(r, (m.start()+scope_range[0],
                                           m.end()+scope_range[0])) != 0
@@ -222,16 +248,22 @@ class Rule(ConfigElement):
             return None
 
         # replace the value in the buffer and return it
-        sub_id = self.keys[key][0]
+        sub_id = self.keys[key]
+
+        # format value object
+        fmatted_val = self.formats[sub_id-1].format(value)
+        self.logger.log(Settings.VDEBUG,
+                        'value formatted: %s', fmatted_val)
+
         out_buffer \
             = _buffer[:scope_range[0]+match.start(sub_id)] \
-            + value \
+            + fmatted_val \
             + _buffer[scope_range[0]+match.end(sub_id):]
         self.logger.debug('Value set: %s <- %s', key, value)
         return out_buffer
 
     def get_key_type(self, key):
-        return self.keys[key][-1].get_type()
+        return self.formats[self.keys[key]-1].get_type()
 
 
 class RuleVLen(Rule):
@@ -264,6 +296,8 @@ class RuleVLen(Rule):
         self.keys = keys
         self.logger = logging.getLogger('Systhemer.Progs.common.'
                                         + self.__class__.__name__)
+        self.build_rule_rgx()
+        self.build_formats()
 
     def _set(self, key, value, _buffer, scope_range, exclude_ranges):
         matches = self.get_matches(_buffer, scope_range, exclude_ranges)
@@ -280,14 +314,23 @@ class RuleVLen(Rule):
 
         # replace the value in the buffer and return it
         sub_id = self.keys[key][0]
+
+        # format value object
+        fmatted_val = self.formats[sub_id-1].format(value)
+        self.logger.log(Settings.VDEBUG,
+                        'value formatted: %s', fmatted_val)
+
         # -1 for consistency with sub_id 1-based numbering
         sub_sub_id = self.keys[key][1]-1
         out_buffer \
             = _buffer[:scope_range[0]+match.starts(sub_id)[sub_sub_id]] \
-            + value \
+            + fmatted_val \
             + _buffer[scope_range[0]+match.ends(sub_id)[sub_sub_id]:]
         self.logger.debug('Value set: %s <- %s', key, value)
         return out_buffer
+
+    def get_key_type(self, key):
+        return self.formats[self.keys[key][0]-1].get_type()
 
 
 class Section(ConfigElement):

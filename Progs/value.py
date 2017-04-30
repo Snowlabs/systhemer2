@@ -75,6 +75,9 @@ class Value(object):
             """Must be implemented"""
             raise NotImplementedError()
 
+        def get_rgx(self):
+            return r'(\S+)'
+
         @staticmethod
         def get_format(s):
             """Must be implemented"""

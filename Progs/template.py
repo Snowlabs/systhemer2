@@ -313,10 +313,7 @@ class ProgDef(object):
 
         # go through rules applying 'value' for 'key'
         for rule_obj in rules:
-            _val = rule_obj.keys[key][-1].format(value)
-            self.logger.log(common.Settings.VDEBUG,
-                            'value formatted: %s', _val)
-            self.filebuff = self._set(rule_obj, key, _val, self.filebuff)
+            self.filebuff = self._set(rule_obj, key, value, self.filebuff)
 
     def save(self):
         """Save the file.
