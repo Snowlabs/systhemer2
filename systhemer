@@ -5,6 +5,7 @@ import interactive
 import logging
 import configparser
 import Progs
+from Progs.value import Litteral
 
 
 class Settings:
@@ -30,24 +31,49 @@ def run():
     # ini file loaded
     # initialized
 
+    # Build values dict
+    logger.info('Building values dictionary')
+
+    values = {}
+    for pd in Progs.prog_defs:
+        logger.info('Building values for program: \'%s\'', pd.get_name())
+
+        for rule in theme:
+            values[rule] = {}
+            for key in theme[rule]:
+                val_type = pd.get_key_type(key)
+                if val_type:
+                    values[rule][key] \
+                            = val_type.Formatter.auto_parse(theme[rule][key])
+        for rule in theme:
+            for key in theme[rule]:
+                if key not in values[rule]:
+                    logger.log(Settings.VDEBUG, 'unrecognized key \'%s\' '
+                               'assuming string litteral', key)
+                    values[rule][key] = Litteral(theme[rule][key])
+
+    logger.log(Settings.VDEBUG, values)
+    logger.info('Values dictionary built')
+    # value dict built
+
     # Apply theme
     # loop though program definitions
     for prog_def in Progs.prog_defs:
         # apply theme to curent program
         logger.info('Applying theme for program: \'%s\'',
-                    prog_def.name)
+                    prog_def.get_name())
 
         # loop through rules
-        for rule in theme:
+        for rule in values:
             logger.debug('Applying rule: %s', rule)
             # loop through keys in current rule
-            for key in theme[rule]:
+            for key in values[rule]:
                 # set(key, value)
-                prog_def.set(key, theme[rule][key], rule)
+                prog_def.set(key, values[rule][key], rule)
 
         # save theme for current program
         logger.info('Writing to config file for program: \'%s\'',
-                    prog_def.name)
+                    prog_def.get_name())
         prog_def.save()
     # theme applied
 

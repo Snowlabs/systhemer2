@@ -216,12 +216,15 @@ class Rule(ConfigElement):
             return None
 
         # replace the value in the buffer and return it
-        sub_id = self.keys[key]
+        sub_id = self.keys[key][0]
         out_buffer = _buffer[:scope_range[0]+match.start(sub_id)] \
             + value \
             + _buffer[scope_range[0]+match.end(sub_id):]
         self.logger.debug('Value set: %s <- %s', key, value)
         return out_buffer
+
+    def get_key_type(self, key):
+        return self.keys[key][-1].get_type()
 
 
 class RuleVLen(Rule):

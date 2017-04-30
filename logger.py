@@ -29,7 +29,7 @@ def setup_logger(Settings):
             },
             secondary_log_colors={
                 'line': {
-                    'DEBUG':    'bg_bold_black,bold_white'
+                    'DEBUG':    'bg_black,bold_white'
                 },
                 'message': {
                     'VDEBUG':   'cyan',

@@ -24,7 +24,7 @@ class PipelineableObject(object):
 
     def __repr__(self):
         # imperfect repr function...
-        return 'pipelineable_object(\'' + repr(self.str) + '\')'
+        return 'pipelineable_object(' + repr(self.obj) + ')'
 
     def non_existant(self, meth_name):
         raise AttributeError('This PipelineableObject object does '
@@ -49,6 +49,11 @@ class Value(object):
         pass
 
     class Formatter(object):
+        @staticmethod
+        def get_type():
+            """Must be implemented"""
+            raise NotImplementedError()
+
         def __init__(self, fmat):
             # For now, (until i can figure it out,) it displays logger class
             # as Systhemer.value.Value.Formatter instead of actual
@@ -57,7 +62,6 @@ class Value(object):
             self.logger = logging.getLogger('Systhemer.value.%s.%s'
                                             % ('Value',  # fix this!
                                                self.__class__.__name__))
-            self.logger.info('test')
             self.fmat = fmat
 
         def __repr__(self):
@@ -68,6 +72,16 @@ class Value(object):
             raise NotImplementedError()
 
         def parse(self, string, pipeline=False):
+            """Must be implemented"""
+            raise NotImplementedError()
+
+        @staticmethod
+        def get_format(s):
+            """Must be implemented"""
+            raise NotImplementedError()
+
+        @staticmethod
+        def auto_parse(s, pipeline=False):
             """Must be implemented"""
             raise NotImplementedError()
 
@@ -118,6 +132,10 @@ class Color(Value):
         hexRRGGBBAA = '#{xRR}{xGG}{xBB}{xAA}'
 
     class Formatter(Value.Formatter):
+        @staticmethod
+        def get_type():
+            return Color
+
         bases = {'x': 16, 'X': 16, 'd': 10}
         max_digits = 2
 
@@ -201,6 +219,27 @@ class Color(Value):
             if pipeline:
                 return PipelineableObject(self, out_obj)
             return out_obj
+
+        @staticmethod
+        def get_format(s):
+            fmat = ''
+            if s[0] == '#':
+                body_len = len(s[1:])
+                if body_len == 3:
+                    fmat = Color.formats.hexRGB
+                elif body_len == 6:
+                    fmat = Color.formats.hexRRGGBB
+                elif body_len == 8:
+                    fmat = Color.formats.hexRRGGBBAA
+            if fmat:
+                return Color.Formatter(fmat)
+            else:
+                logging.getLogger('Systhemer.Color.Formatter').critical(
+                        'Format not found for \'%s\'', s)
+
+        @staticmethod
+        def auto_parse(s, pipeline=False):
+            return Color.Formatter.get_format(s).parse(s, pipeline=pipeline)
 
     def __init__(self, *args, **kwargs):
         """Set RGBA values according to tuple of floats from 0 to 1
@@ -287,3 +326,52 @@ class Color(Value):
             return self.Formatter(fmat).format(self, pipeline=pipeline)
         elif isinstance(fmat, Value.Formatter):
             return fmat.format(self, pipeline=pipeline)
+
+
+class Litteral(Value):
+    class Formatter(Value.Formatter):
+        @staticmethod
+        def get_type():
+            return Litteral
+
+        def __init__(self):
+            """String litteral value type"""
+            # For now, (until i can figure it out,) it displays logger class
+            # as Systhemer.value.Value.Formatter instead of actual
+            # instance parent class name :(
+            # TODO: fix issue explained above
+            self.logger = logging.getLogger('Systhemer.value.%s.%s'
+                                            % ('Value',  # fix this!
+                                               self.__class__.__name__))
+
+        def __repr__(self):
+            return self.__class__.__name__ + '()'
+
+        def format(self, value, pipeline=False):
+            out_str = value.s
+            if pipeline:
+                return PipelineableObject(self, out_str)
+            return out_str
+
+        def parse(self, string, pipeline=False):
+            out_obj = Litteral(string)
+            if pipeline:
+                return PipelineableObject(self, out_obj)
+            return out_obj
+
+        @staticmethod
+        def auto_parse(s, pipeline=False):
+            return Litteral.Formatter().parse(s, pipeline=pipeline)
+
+    def __init__(self, s):
+        self.s = s
+
+    def __repr__(self):
+        return 'Litteral(\'%s\')' % self.s
+
+    def __str__(self):
+        return repr(self)
+
+    def format(self, pipeline=False):
+        """Useless and only for modularity sake"""
+        return self.Formatter().format(self, pipeline=pipeline)

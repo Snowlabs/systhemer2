@@ -26,7 +26,7 @@ class ProgDef(object):
         self.Settings = Settings
         self.logger = logging.getLogger('Systhemer.Progs.' + self.name)
         self.filebuff = None
-        self.config = {}  # add definitions here
+        self.config = common.RuleTree()  # add definitions here
         self.special_excludes = []
         self.init(*args, **kwargs)
 
@@ -72,7 +72,8 @@ class ProgDef(object):
         return self.config
 
     def get_setting(self, setting, default=None, critical=True, msg=None):
-        """Get a setting from self.Settings."""
+        """Get a setting from self.Settings.
+        NOTE: probably should get moved to common module..."""
         value = getattr(self.Settings, setting, None)
         if value is None:
             msg = msg if msg is not None else \
@@ -84,6 +85,12 @@ class ProgDef(object):
                 self.logger.error(msg + ' Returning \'None\'.', setting)
                 return default
         return value
+
+    def get_key_type(self, key):
+        try:
+            return self.find_rules(key, self.config)[0].get_key_type(key)
+        except IndexError:
+            pass
 
     def get_file_buffer(self):
         """Check if filebuffer exists. If not, one is created."""
@@ -306,7 +313,10 @@ class ProgDef(object):
 
         # go through rules applying 'value' for 'key'
         for rule_obj in rules:
-            self.filebuff = self._set(rule_obj, key, value, self.filebuff)
+            _val = rule_obj.keys[key][-1].format(value)
+            self.logger.log(common.Settings.VDEBUG,
+                            'value formatted: %s', _val)
+            self.filebuff = self._set(rule_obj, key, _val, self.filebuff)
 
     def save(self):
         """Save the file.

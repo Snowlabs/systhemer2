@@ -1,5 +1,6 @@
 from .template import ProgDef
 from .common import RuleTree, Rule, RuleVLen, Section
+from . import value
 
 
 class i3wm(ProgDef):
@@ -8,59 +9,60 @@ class i3wm(ProgDef):
     def init(self):
         space = r'[ \t]+'
         key = r'(\S+)'
+        fmat = value.Color.Formatter(value.Color.formats.hexRRGGBB)
         def_val = '#ffffff'
         self.config = RuleTree(
             # client.focused key key key key key
             #                ^1  ^2  ^3  ^4  ^5
             RuleVLen(r'client\.focused(?:' + space + key + r'){1,5}', {
-                'focused.border':       (1, 1, def_val),
-                'titlebar':             (1, 1, def_val),
-                'focused.background':   (1, 2, def_val),
-                'focused.text':         (1, 3, def_val),
-                'focused.indicator':    (1, 4, def_val),
-                'focused.child_border': (1, 5, def_val)}),
+                'focused.border':       (1, 1, def_val, fmat),
+                'titlebar':             (1, 1, def_val, fmat),
+                'focused.background':   (1, 2, def_val, fmat),
+                'focused.text':         (1, 3, def_val, fmat),
+                'focused.indicator':    (1, 4, def_val, fmat),
+                'focused.child_border': (1, 5, def_val, fmat)}),
             Section(r'([ \t\n]+|^)bar', '{', '}',
                     Rule(r'test' + space + key, {
-                        'testval': 1}),
+                        'testval': (1, fmat)}),
                     Rule(r'test2' + space + key, {
-                        'testval2': 1}),
+                        'testval2': (1, fmat)}),
                     Section(r'([ \t\n]+|^)subbar', '{', '}',
                             Rule(r'test3' + space + key, {
-                                'testval3': 1}))),
+                                'testval3': (1, fmat)}))),
             Rule(r'client\.focused_inactive' + (space+key)*5, {
-                'focused_inactive.border':       1,
-                'focused_inactive.background':   2,
-                'focused_inactive.text':         3,
-                'focused_inactive.indicator':    4,
-                'focused_inactive.child_border': 5}),
+                'focused_inactive.border':       (1, fmat),
+                'focused_inactive.background':   (2, fmat),
+                'focused_inactive.text':         (3, fmat),
+                'focused_inactive.indicator':    (4, fmat),
+                'focused_inactive.child_border': (5, fmat)}),
             Rule(r'client\.unfocused' + (space+key)*5, {
-                'unfocused.border':       1,
-                'unfocused.background':   2,
-                'unfocused.text':         3,
-                'unfocused.indicator':    4,
-                'unfocused.child_border': 5}),
+                'unfocused.border':       (1, fmat),
+                'unfocused.background':   (2, fmat),
+                'unfocused.text':         (3, fmat),
+                'unfocused.indicator':    (4, fmat),
+                'unfocused.child_border': (5, fmat)}),
             Rule(r'client\.urgent' + (space+key)*5, {
-                'urgent.border':       1,
-                'urgent.background':   2,
-                'urgent.text':         3,
-                'urgent.indicator':    4,
-                'urgent.child_border': 5}),
+                'urgent.border':       (1, fmat),
+                'urgent.background':   (2, fmat),
+                'urgent.text':         (3, fmat),
+                'urgent.indicator':    (4, fmat),
+                'urgent.child_border': (5, fmat)}),
             Rule(r'client\.placeholder' + (space+key)*5, {
-                'placeholder.border':       1,
-                'placeholder.background':   2,
-                'placeholder.text':         3,
-                'placeholder.indicator':    4,
-                'placeholder.child_border': 5}),
+                'placeholder.border':       (1, fmat),
+                'placeholder.background':   (2, fmat),
+                'placeholder.text':         (3, fmat),
+                'placeholder.indicator':    (4, fmat),
+                'placeholder.child_border': (5, fmat)}),
             Rule(r'client\.background' + space + key, {
-                'background': 1}),
+                'background': (1, fmat)}),
             Section(r'([ \t\n]+|^)bar', '{', '}',
                     Rule(r'test' + space + key, {
-                        'testval': 1}),
+                        'testval': (1, fmat)}),
                     Rule(r'test2' + space + key, {
-                        'testval2': 1}),
+                        'testval2': (1, fmat)}),
                     Section(r'([ \t\n]+|^)subbar', '{', '}',
                             Rule(r'test3' + space + key, {
-                                'testval3': 1})))
+                                'testval3': (1, fmat)})))
         )
 
     def is_installed(self):
