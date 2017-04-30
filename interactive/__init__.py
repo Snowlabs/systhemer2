@@ -21,7 +21,7 @@ class iconsole(cmd.Cmd):
             func = eval('{0}.{0}'.format(func_name))
             # bind function to self.do_{func name}
             setattr(self, 'do_'+func_name,
-                    lambda a: func(self, a))
+                    lambda a, f=func: f(self, a))
             # also import its __doc__ (docstring)
             getattr(self, 'do_'+func_name).__doc__ = func.__doc__
             self.extra_methods.append('do_' + func_name)

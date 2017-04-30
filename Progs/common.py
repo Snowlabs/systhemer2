@@ -192,6 +192,9 @@ class Rule(ConfigElement):
         return self.__class__.__name__ + '(%s, %s)' \
             % (self.rule.__repr__(), self.keys.__repr__())
 
+    def __str__(self):
+        return self.__class__.__name__
+
     def get_matches(self, _buffer, scope_range, exclude_ranges):
         # Construct a list of all matches of 'rule' in the proper scope that
         # aren't excluded by any of the rules in exclude_ranges
