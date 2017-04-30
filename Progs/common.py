@@ -192,10 +192,9 @@ class Rule(ConfigElement):
         return self.__class__.__name__ + '(%s, %s)' \
             % (self.rule.__repr__(), self.keys.__repr__())
 
-    def _set(self, key, value, _buffer, scope_range, exclude_ranges):
+    def get_matches(self, _buffer, scope_range, exclude_ranges):
         # Construct a list of all matches of 'rule' in the proper scope that
         # aren't excluded by any of the rules in exclude_ranges
-        print(self.rule)
         matches = []
         for m in regex.finditer(self.rule,
                                 _buffer[scope_range[0]:scope_range[1]]):
@@ -204,6 +203,10 @@ class Rule(ConfigElement):
                     for r in exclude_ranges]
             if not (True in excs):
                 matches.append(m)
+        return matches
+
+    def _set(self, key, value, _buffer, scope_range, exclude_ranges):
+        matches = self.get_matches(_buffer, scope_range, exclude_ranges)
 
         # check if empty list
         if matches:
@@ -217,7 +220,8 @@ class Rule(ConfigElement):
 
         # replace the value in the buffer and return it
         sub_id = self.keys[key][0]
-        out_buffer = _buffer[:scope_range[0]+match.start(sub_id)] \
+        out_buffer \
+            = _buffer[:scope_range[0]+match.start(sub_id)] \
             + value \
             + _buffer[scope_range[0]+match.end(sub_id):]
         self.logger.debug('Value set: %s <- %s', key, value)
@@ -259,19 +263,7 @@ class RuleVLen(Rule):
                                         + self.__class__.__name__)
 
     def _set(self, key, value, _buffer, scope_range, exclude_ranges):
-        # Construct a list of all matches of 'rule' in the proper scope that
-        # aren't excluded by any of the rules in exclude_ranges
-        print(self.rule)
-        matches = []
-        for m in regex.finditer(self.rule,
-                                _buffer[scope_range[0]:scope_range[1]]):
-
-            excs = [utils.is_excluded(r, (m.start()+scope_range[0],
-                                          m.end()+scope_range[0])) != 0
-                    for r in exclude_ranges]
-
-            if not (True in excs):
-                matches.append(m)
+        matches = self.get_matches(_buffer, scope_range, exclude_ranges)
 
         # check if empty list
         if matches:

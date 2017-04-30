@@ -40,17 +40,20 @@ def run():
 
         for rule in theme:
             values[rule] = {}
-            for key in theme[rule]:
+
+        for section_id, section in theme.items():
+            for key, val in section.items():
                 val_type = pd.get_key_type(key)
                 if val_type:
-                    values[rule][key] \
-                            = val_type.Formatter.auto_parse(theme[rule][key])
-        for rule in theme:
-            for key in theme[rule]:
-                if key not in values[rule]:
+                    values[section_id][key] \
+                            = val_type.Formatter.auto_parse(val)
+
+        for section_id, section in theme.items():
+            for key, val in section.items():
+                if key not in values[section_id]:
                     logger.log(Settings.VDEBUG, 'unrecognized key \'%s\' '
                                'assuming string litteral', key)
-                    values[rule][key] = Litteral(theme[rule][key])
+                    values[section_id][key] = Litteral(val)
 
     logger.log(Settings.VDEBUG, values)
     logger.info('Values dictionary built')
@@ -58,23 +61,23 @@ def run():
 
     # Apply theme
     # loop though program definitions
-    for prog_def in Progs.prog_defs:
+    for pd in Progs.prog_defs:
         # apply theme to curent program
         logger.info('Applying theme for program: \'%s\'',
-                    prog_def.get_name())
+                    pd.get_name())
 
-        # loop through rules
-        for rule in values:
-            logger.debug('Applying rule: %s', rule)
-            # loop through keys in current rule
-            for key in values[rule]:
+        # loop through sections
+        for section_id, section in values.items():
+            logger.debug('Applying rule: %s', section_id)
+            # loop through keys in current section
+            for key, val in section.items():
                 # set(key, value)
-                prog_def.set(key, values[rule][key], rule)
+                pd.set(key, val, section_id)
 
         # save theme for current program
         logger.info('Writing to config file for program: \'%s\'',
-                    prog_def.get_name())
-        prog_def.save()
+                    pd.get_name())
+        pd.save()
     # theme applied
 
 
