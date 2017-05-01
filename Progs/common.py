@@ -185,7 +185,9 @@ class Rule(ConfigElement):
                 - Value: number specifying the capture group
         """
         self.rule = rule
-        self.keys = keys
+        # self.keys = keys
+        self.keys = keys.keys()
+        self.sub_ids = keys
         self.logger = logging.getLogger('Systhemer.Progs.common.'
                                         + self.__class__.__name__)
         self.build_rule_rgx()
@@ -221,49 +223,71 @@ class Rule(ConfigElement):
         self.formats = formats
 
     def get_matches(self, _buffer, scope_range, exclude_ranges):
+        """Applies self.rule_rgx to buffer.
+        Returns non-excluded match objects.
+        """
         # Construct a list of all matches of 'rule' in the proper scope that
         # aren't excluded by any of the rules in exclude_ranges
         matches = []
 
-        for m in regex.finditer(self.rule_rgx,
-                                _buffer[scope_range[0]:scope_range[1]]):
-            excs = [utils.is_excluded(r, (m.start()+scope_range[0],
-                                          m.end()+scope_range[0])) != 0
-                    for r in exclude_ranges]
-            if not (True in excs):
-                matches.append(m)
+        scoped_buffer = _buffer[scope_range[0]:scope_range[1]]
+
+        stop = False
+
+        for m in regex.finditer(self.rule_rgx, scoped_buffer):
+            for r in exclude_ranges:
+                # check is range excludes match
+                # compensating also for scope offset of match
+                if utils.is_excluded(r, (m.start()+scope_range[0],
+                                         m.end()+scope_range[0])):
+                    # as soon as one of the ranges
+                    # excludes the match, we check the next match
+                    stop = True
+                    break
+            if stop:
+                stop = False
+                continue
+            matches.append(m)
+
         return matches
 
     def _set(self, key, value, _buffer, scope_range, exclude_ranges):
+        # apply rule rgx and get non-excluded matches
         matches = self.get_matches(_buffer, scope_range, exclude_ranges)
 
         # check if empty list
-        if matches:
+        try:
             # for now, we only apply the value to the first key match
             match = matches[0]
-        else:
+        except IndexError:
             self.logger.warning('Found rule \'%s\' in program definition'
-                                ' but not in configuration file!',
-                                key)
+                                ' but not in configuration file!', key)
             return None
 
-        # replace the value in the buffer and return it
-        sub_id = self.keys[key]
+        sub_id = self.sub_ids[key]
 
         # format value object
         fmatted_val = self.formats[sub_id-1].format(value)
         self.logger.log(Settings.VDEBUG,
                         'value formatted: %s', fmatted_val)
 
-        out_buffer \
-            = _buffer[:scope_range[0]+match.start(sub_id)] \
-            + fmatted_val \
-            + _buffer[scope_range[0]+match.end(sub_id):]
+        # replace the value in the buffer and return it
+        offset = scope_range[0]
+        out_buffer = self.gen_new_buffer(key, fmatted_val, _buffer, match, offset)
         self.logger.debug('Value set: %s <- %s', key, value)
         return out_buffer
 
+    def gen_new_buffer(self, key, raw_val, _buffer, match, offset):
+        sub_id = self.sub_ids[key]
+
+        out_buffer \
+            = _buffer[:offset+match.start(sub_id)] \
+            + raw_val\
+            + _buffer[offset+match.end(sub_id):]
+        return out_buffer
+
     def get_key_type(self, key):
-        return self.formats[self.keys[key]-1].get_type()
+        return self.formats[self.sub_ids[key]-1].get_type()
 
 
 class RuleVLen(Rule):
@@ -293,44 +317,24 @@ class RuleVLen(Rule):
                           (yes this is necessary)
         """
         self.rule = rule
-        self.keys = keys
+        self.keys = keys.keys()
+        self.sub_ids = {k: v[0] for k, v in keys.items()}
+        self.sub_sub_ids = {k: v[1] for k, v in keys.items()}
         self.logger = logging.getLogger('Systhemer.Progs.common.'
                                         + self.__class__.__name__)
         self.build_rule_rgx()
         self.build_formats()
 
-    def _set(self, key, value, _buffer, scope_range, exclude_ranges):
-        matches = self.get_matches(_buffer, scope_range, exclude_ranges)
-
-        # check if empty list
-        if matches:
-            # for now, we only apply the value to the first key match
-            match = matches[0]
-        else:
-            self.logger.warning('Found rule \'%s\' in program definition'
-                                ' but not in configuration file!',
-                                key)
-            return None
-
-        # replace the value in the buffer and return it
-        sub_id = self.keys[key][0]
-
-        # format value object
-        fmatted_val = self.formats[sub_id-1].format(value)
-        self.logger.log(Settings.VDEBUG,
-                        'value formatted: %s', fmatted_val)
-
+    def gen_new_buffer(self, key, raw_val, _buffer, match, offset):
         # -1 for consistency with sub_id 1-based numbering
-        sub_sub_id = self.keys[key][1]-1
-        out_buffer \
-            = _buffer[:scope_range[0]+match.starts(sub_id)[sub_sub_id]] \
-            + fmatted_val \
-            + _buffer[scope_range[0]+match.ends(sub_id)[sub_sub_id]:]
-        self.logger.debug('Value set: %s <- %s', key, value)
-        return out_buffer
+        sub_id = self.sub_ids[key]
+        sub_sub_id = self.sub_sub_ids[key]-1
 
-    def get_key_type(self, key):
-        return self.formats[self.keys[key][0]-1].get_type()
+        out_buffer \
+            = _buffer[:offset+match.starts(sub_id)[sub_sub_id]] \
+            + raw_val \
+            + _buffer[offset+match.ends(sub_id)[sub_sub_id]:]
+        return out_buffer
 
 
 class Section(ConfigElement):
