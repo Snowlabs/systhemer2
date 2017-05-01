@@ -31,35 +31,42 @@ def run():
     # ini file loaded
     # initialized
 
-    # Build values dict
+    # ==== Build values dict
     logger.info('Building values dictionary')
-
     values = {}
-    for pd in Progs.prog_defs:
-        logger.info('Building values for program: \'%s\'', pd.get_name())
 
-        for rule in theme:
-            values[rule] = {}
+    for section_id, section in theme.items():
+        # create empty sub-dicts
+        values[section_id] = {}
 
-        for section_id, section in theme.items():
-            for key, val in section.items():
+        # loop through all key, val pairs for each section
+        for key, val in section.items():
+
+            val_type = None
+            # val_type gets overriden in the order of prog_defs
+            # loaded if there are many types defined
+            for pd in Progs.prog_defs:
                 val_type = pd.get_key_type(key)
-                if val_type:
-                    values[section_id][key] \
-                            = val_type.Formatter.auto_parse(val)
 
-        for section_id, section in theme.items():
-            for key, val in section.items():
-                if key not in values[section_id]:
-                    logger.log(Settings.VDEBUG, 'unrecognized key \'%s\' '
-                               'assuming string litteral', key)
-                    values[section_id][key] = Litteral(val)
+            # val_type found...
+            if val_type:
+                values[section_id][key] = \
+                        val_type.Formatter.auto_parse(val)
+
+                logger.log(Settings.VDEBUG, 'recognized key \'%s\': %s',
+                           key, values[section_id][key])
+
+            # val_type not found...
+            else:
+                logger.log(Settings.VDEBUG, 'unrecognized key \'%s\' '
+                           'assuming string litteral', key)
+                values[section_id][key] = Litteral(val)
 
     logger.log(Settings.VDEBUG, values)
-    logger.info('Values dictionary built')
-    # value dict built
+    # ==== value dict built
 
-    # Apply theme
+    # ==== Apply theme
+    logger.info('Applying theme')
     # loop though program definitions
     for pd in Progs.prog_defs:
         # apply theme to curent program
@@ -78,7 +85,7 @@ def run():
         logger.info('Writing to config file for program: \'%s\'',
                     pd.get_name())
         pd.save()
-    # theme applied
+    # ==== theme applied
 
 
 def parse_args():
