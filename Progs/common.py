@@ -240,14 +240,11 @@ class Rule(ConfigElement):
                 # compensating also for scope offset of match
                 if utils.is_excluded(r, (m.start()+scope_range[0],
                                          m.end()+scope_range[0])):
-                    # as soon as one of the ranges
-                    # excludes the match, we check the next match
-                    stop = True
                     break
-            if stop:
-                stop = False
-                continue
-            matches.append(m)
+
+            # if loop ran with no `break`
+            else:
+                matches.append(m)
 
         return matches
 
@@ -273,7 +270,9 @@ class Rule(ConfigElement):
 
         # replace the value in the buffer and return it
         offset = scope_range[0]
-        out_buffer = self.gen_new_buffer(key, fmatted_val, _buffer, match, offset)
+        out_buffer = self.gen_new_buffer(
+            key, fmatted_val, _buffer, match, offset
+        )
         self.logger.debug('Value set: %s <- %s', key, value)
         return out_buffer
 

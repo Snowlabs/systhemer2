@@ -144,7 +144,7 @@ class ProgDef(object):
                     recpos=start_pos)
                 end_char = re.search(section_obj.endchar,
                                      initial_buffer[end_pos:])
-                continue_parent = False
+                # continue_parent = False
                 for e in excludes:
                     # print(e, (start_char.start(), end_pos+end_char.end()))
                     if utils.is_excluded(e, (start_char.start(),
@@ -154,11 +154,13 @@ class ProgDef(object):
                                           ' returning None)',
                                           section_obj.name)
                         count += 1
-                        continue_parent = True
                         break
-                if continue_parent:
-                    continue
-                return (start_pos, end_pos, exclusions)
+
+                # if loop executes with no `break`
+                else:
+                    return (start_pos, end_pos, exclusions)
+
+            # if falls through...
             self.logger.warning('section \'%s\' not found!'
                                 ' (returning None)', section_obj.name)
             return None

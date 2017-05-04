@@ -10,7 +10,7 @@ from Progs.value import Litteral
 
 class Settings:
     # default settings...
-    colorlog_supported = True
+    # colorlog_supported = True
     VDEBUG_LVL = 9
     # theme_file_path = './files/theme.toml'
 
@@ -50,17 +50,15 @@ def run():
 
             # val_type found...
             if val_type:
-                values[section_id][key] = \
-                        val_type.Formatter.auto_parse(val)
-
+                values[section_id][key] = val_type.Formatter.auto_parse(val)
                 logger.log(Settings.VDEBUG, 'recognized key \'%s\': %s',
                            key, values[section_id][key])
 
             # val_type not found...
             else:
-                logger.log(Settings.VDEBUG, 'unrecognized key \'%s\' '
-                           'assuming string litteral', key)
                 values[section_id][key] = Litteral(val)
+                logger.log(Settings.VDEBUG, 'unrecognized key \'%s\' '
+                           'assumed string litteral', key)
 
     logger.log(Settings.VDEBUG, values)
     # ==== value dict built
@@ -148,6 +146,9 @@ if __name__ == '__main__':
     except ImportError:
         Settings.colorlog_supported = False
         Settings.nocolorlog = True
+    else:
+        Settings.colorlog_supported = True
+        Settings.nocolorlog = False
 
     parse_args()
     logger = setup_logger(Settings)
