@@ -197,10 +197,15 @@ class Color(Value):
 
             keys_types = {}
 
+            # escape fmat and unescape '{' '}' chars afterwards
+            fmat = re.escape(self.fmat)
+            fmat = re.sub(r'(\\\{|\\\})',
+                          lambda m: '{' if m.group() == r'\{' else '}', fmat)
+
             # generate regular expression
             # looking for groups delimited by `{}`
             # and passing the match objs to subfn
-            color_format_re = re.sub(r'\{((?:[^}]|\\\})*)\}', subfn, self.fmat)
+            color_format_re = re.sub(r'\{((?:[^}]|\\\})*)\}', subfn, fmat)
 
             # extract values from `color` string using generated regexpr
             match = re.search(color_format_re, string)
