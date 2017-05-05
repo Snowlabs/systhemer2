@@ -134,13 +134,36 @@ class Color(Value):
         hexAARRGGBB = '#{xAA}{xRR}{xGG}{xBB}'
         hexRRGGBBAA = '#{xRR}{xGG}{xBB}{xAA}'
 
+        floRGB = 'rgb.f({fR_n},{fG_n},{fB_n})'
+        decRGB = 'rgb({dRR},{dGG},{dBB})'
+
     class Formatter(Value.Formatter):
         @staticmethod
         def get_type():
             return Color
 
-        bases = {'x': 16, 'X': 16, 'd': 10}
+        bases = {'x': 16, 'X': 16, 'd': 10, 'f': 10}
         max_digits = 2
+
+        def __init__(self, *args, **kwargs):
+            def float_gen(value):
+                out = {}
+                for val in 'RGBA':
+                    out['f%s_n' % val] = value[val]
+                return out
+
+            def float_sub(m):
+                if m.group(1)[0] == 'f' and m.group(1)[2:] == '\_n':
+                    return '(?P<%s>[+-]?(?:[0-9]*[.])?[0-9]+)' % m.group(1)[1]
+
+            def float_conv(bchar):
+                if bchar == 'f':
+                    return lambda v: float(v)
+
+            super(self.__class__, self).__init__(*args, **kwargs)
+            self.extra_val_gens = [float_gen]
+            self.extra_val_subs = [float_sub]
+            self.extra_val_convs = [float_conv]
 
         def format(self, value, pipeline=False):
             """Return color according to color_format."""
@@ -156,7 +179,7 @@ class Color(Value):
             range_digits = range(1, self.max_digits+1)
 
             for val, bchar, num_digits in itertools.product(keys,
-                                                            self.bases,
+                                                            self.bases.keys(),
                                                             range_digits):
                 # key
                 k = bchar + (val * num_digits)
@@ -168,6 +191,11 @@ class Color(Value):
 
                 # save pair in `values`
                 values[k] = v
+
+            for func in self.extra_val_gens:
+                values.update(func(value))
+
+            print(values)
 
             # apply format with pre-formatted values
             out_str = self.fmat.format(**values)
@@ -183,19 +211,30 @@ class Color(Value):
                 return int(string, base)/((base**len(string))-1)
 
             def subfn(m):
-                key_type = m.group(1)[0].lower()
-                key = m.group(1)[1]
-                digits = len(m.group(1)[1:])
+                _fmat = m.group(1)
 
+                key_type = _fmat[0].lower()
+                key = _fmat[1]
                 keys_types[key] = key_type
+                digits = len(_fmat[1:])
+
+                for func in self.extra_val_subs:
+                    o = func(m)
+                    if o is not None:
+                        return o
+
                 return '(?P<%s>%s)' % (key, (r'.'*digits))
 
             # dict of shorthands for getting values of different bases
             conversions = {}
             for bchar, base in self.bases.items():
-                conversions[bchar] = lambda v, b=base: convert(v, b)
-
-            keys_types = {}
+                for func in self.extra_val_convs:
+                    conv = func(bchar)
+                    if conv is not None:
+                        conversions[bchar] = conv
+                        break
+                else:
+                    conversions[bchar] = lambda v, b=base: convert(v, b)
 
             # escape fmat and unescape '{' '}' chars afterwards
             fmat = re.escape(self.fmat)
@@ -205,7 +244,10 @@ class Color(Value):
             # generate regular expression
             # looking for groups delimited by `{}`
             # and passing the match objs to subfn
+            # NOTE: subfn side effect: modifies keys_types
+            keys_types = {}
             color_format_re = re.sub(r'\{((?:[^}]|\\\})*)\}', subfn, fmat)
+            print(self.fmat, color_format_re)
 
             # extract values from `color` string using generated regexpr
             match = re.search(color_format_re, string)
@@ -239,6 +281,13 @@ class Color(Value):
                     fmat = Color.formats.hexRRGGBB
                 elif body_len == 8:
                     fmat = Color.formats.hexRRGGBBAA
+            elif s[:3] == 'rgb' and s[-1] == ')':
+                if s[3:6] == '.f(':
+                    fmat = Color.formats.floRGB
+                elif s[3:4] == '(':
+                    fmat = Color.formats.decRGB
+
+
             if fmat:
                 return Color.Formatter(fmat)
             else:
