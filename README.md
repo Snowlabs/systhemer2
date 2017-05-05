@@ -49,7 +49,7 @@ Things to do for a proper release, in order of priority starting from highest.
 
 | Feature | Status |
 | ------- | ------ |
-| Implement color formats for config rules | WIP |
+| Implement color formats for config rules | Done! |
 | Restructure project for improved modularity | Not Started |
 | Add proper code documentation on RTD | WIP |
 | Refactor code for readability | WIP |
