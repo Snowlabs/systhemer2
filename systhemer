@@ -87,49 +87,88 @@ def run():
 
 
 def parse_args():
+    args = {
+        'interactive_mode': [
+            'run Systhemer in interactive mode',
+            ['-i', '--interactive'],
+            {'action': 'store_true'}
+        ],
+        'verbosity': [
+            'set level of verbosity',
+            ['-v', '--verbose'],
+            {'action':  'count',
+             'default': 0}
+        ],
+        'list_progs': [
+            'list supported programs',
+            ['-l', '--list'],
+            {'action': 'store_true'}
+        ],
+        'VDEBUG_LVL': [
+            'set VDEBUG_LVL',
+            ['--VDEBUG_LVL'],
+            {'action': 'store'}
+        ],
+        'path': [
+            'path to theme file',
+            ['--file', '-f'],
+            {'action': 'store'}
+        ],
+        'no_colorlog': [
+            'disable colorlog',
+            ['--no-colorlog', '-nc'],
+            {'action': 'store_true'}
+        ],
+    }
+    real_dests = {
+        'path': 'theme_file_path',
+        # 'no_colorlog': 'nocolorlog'
+    }
+    conditions = {
+        'no_colorlog': Settings.colorlog_supported
+    }
+
     parser = argparse.ArgumentParser(description='Systhemer: System theming'
                                      'utility designed for ease of sharing')
-    parser.add_argument('-i',
-                        '--interactive',
-                        help='run Systhemer in interactive mode',
-                        action='store_true')
-    parser.add_argument('-v',
-                        '--verbose',
-                        help='set level of verbosity',
-                        action='count',
-                        default=0)
-    parser.add_argument('-l',
-                        '--list',
-                        help='list supported programs',
-                        action='store_true',)
-    parser.add_argument('--VDEBUG_LVL',
-                        help='set VDEBUG_LVL',
-                        action='store')
-    if Settings.colorlog_supported:
-        parser.add_argument('-nc',
-                            '--no-colorlog',
-                            help='disable colorlog',
-                            action='store_true')
-    parser.add_argument('path',
-                        help='path to theme file',
-                        action='store',
-                        nargs='?')
+    for arg_id, (_doc, _args, _kwargs) in args.items():
+        if (arg_id not in conditions) or \
+           (arg_id in conditions and conditions[arg_id]):
+            # # pretty print for debugging...
+            # # (UN)COMMENT TO TOGGLE
+            # # (since this is done before setting up the logging system...)
+            # ppa = ', '.join(['\'{}\''.format(a) for a in _args])
+            # ppas = ', '.join([
+            #     '{0}={1}{2}{1}'.format(a, "'" if type(v) is str else '', v)
+            #     for a, v in _kwargs.items()])
+            # print('parser.add_argument('
+            #       '{}, {}, dest={})'.format(ppa, ppas, arg_id))
+            # # finish pretty print...
+
+            parser.add_argument(*_args, **_kwargs, help=_doc, dest=arg_id)
 
     parser.parse_args(namespace=Settings)
     Settings.VDEBUG = Settings.VDEBUG_LVL
+
+    # === Verbosity ===
     # {nothing} : WARNING,
     # -v : INFO,
     # -vv : DEBUG,
     # -vvv : VDEBUG,
     # -v*{anything more} : VDEBUG
     levels = {1: logging.INFO, 2: logging.DEBUG, 3: Settings.VDEBUG_LVL}
-    if Settings.verbose in levels:
-        Settings.verbose = levels[Settings.verbose]
-    elif Settings.verbose > 3:
-        Settings.verbose = Settings.VDEBUG_LVL
+    if Settings.verbosity in levels:
+        Settings.verbosity = levels[Settings.verbosity]
+    elif Settings.verbosity > 3:
+        Settings.verbosity = Settings.VDEBUG_LVL
     else:
-        Settings.verbose = logging.WARNING
-    Settings.theme_file_path = Settings.path
+        Settings.verbosity = logging.WARNING
+
+    # === Aliases for interal names ===
+    for o, r in real_dests.items():
+        ov = getattr(Settings, o, None)
+        setattr(Settings, r, ov)
+        if ov is not None:
+            delattr(Settings, o)
 
 
 def list_progs():
@@ -142,24 +181,35 @@ def list_progs():
 if __name__ == '__main__':
     import argparse
     try:
+        # TODO: somehow check in another way...
+        #       most linters see this as a flaw
+        #       since we're importing but not using the module...
         import colorlog
     except ImportError:
         Settings.colorlog_supported = False
-        Settings.nocolorlog = True
+        Settings.no_colorlog = True
     else:
-        Settings.colorlog_supported = True
-        Settings.nocolorlog = False
+        Settings.colorlog_supported = False
+        Settings.no_colorlog = False
 
     parse_args()
     logger = setup_logger(Settings)
     Progs.setup(Settings)
-    if Settings.interactive:
+    if Settings.interactive_mode:
         interactive.iconsole(Settings).cmdloop()
-    elif Settings.list:
+    elif Settings.list_progs:
         list_progs()
-    else:
-        if getattr(Settings, 'path', None):
+    elif getattr(Settings, 'theme_file_path', None):
+            # TODO: make it so that if the given filename/path isn't found,
+            #       we look for it in the systhemer install dir or some
+            #       other secondary dirs.
             run()
-        else:
-            logger.critical('Error argument: \'path\' not specified!')
-            exit(1)
+        # else:
+        #     logger.critical('Error argument: \'path\' not specified!')
+        #     exit(1)
+    else:
+        # Pipeline mode...
+        # NOTE: implement pipeline injection support...
+        # {insert beautiful code here}
+        # we would wait for a EOF and /then/ close stdout and exit but... yeah
+        exit()

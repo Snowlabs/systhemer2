@@ -41,8 +41,9 @@ def setup_logger(Settings):
     else:
         consFormatter = fileFormatter
 
+    # highest verbosity for file logger
     fileHandler.setLevel(Settings.VDEBUG)
-    consHandler.setLevel(Settings.verbose)
+    consHandler.setLevel(Settings.verbosity)
     fileHandler.setFormatter(fileFormatter)
     consHandler.setFormatter(consFormatter)
 
