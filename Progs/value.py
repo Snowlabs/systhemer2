@@ -195,7 +195,7 @@ class Color(Value):
             for func in self.extra_val_gens:
                 values.update(func(value))
 
-            print(values)
+            # print(values)
 
             # apply format with pre-formatted values
             out_str = self.fmat.format(**values)
@@ -247,7 +247,7 @@ class Color(Value):
             # NOTE: subfn side effect: modifies keys_types
             keys_types = {}
             color_format_re = re.sub(r'\{((?:[^}]|\\\})*)\}', subfn, fmat)
-            print(self.fmat, color_format_re)
+            # print(self.fmat, color_format_re)
 
             # extract values from `color` string using generated regexpr
             match = re.search(color_format_re, string)

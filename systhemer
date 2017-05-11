@@ -119,6 +119,11 @@ def parse_args():
             ['--no-colorlog', '-nc'],
             {'action': 'store_true'}
         ],
+        'no_truncate_log': [
+            'disable single-letter verbosity indicators',
+            ['--no-truncate-log', '-nt'],
+            {'action': 'store_true'}
+        ],
     }
     real_dests = {
         'path': 'theme_file_path',
@@ -163,6 +168,32 @@ def parse_args():
     else:
         Settings.verbosity = logging.WARNING
 
+    # === log LVL names ===
+    if Settings.no_truncate_log:
+        Settings.log_props = {
+            'MAXLEN': 8,
+            'log_names': {
+                Settings.VDEBUG:  'VDEBUG',
+                logging.DEBUG:    'DEBUG',
+                logging.INFO:     'INFO',
+                logging.WARNING:  'WARNING',
+                logging.ERROR:    'ERROR',
+                logging.CRITICAL: 'CRITICAL',
+            }
+        }
+    else:
+        Settings.log_props = {
+            'MAXLEN': 2,
+            'log_names': {
+                Settings.VDEBUG:  'VD',
+                logging.DEBUG:    'DE',
+                logging.INFO:     'II',
+                logging.WARNING:  'WW',
+                logging.ERROR:    'EE',
+                logging.CRITICAL: 'CR',
+            }
+        }
+
     # === Aliases for interal names ===
     for o, r in real_dests.items():
         ov = getattr(Settings, o, None)
@@ -180,25 +211,31 @@ def list_progs():
 
 if __name__ == '__main__':
     import argparse
-    try:
-        # TODO: somehow check in another way...
-        #       most linters see this as a flaw
-        #       since we're importing but not using the module...
-        import colorlog
-    except ImportError:
-        Settings.colorlog_supported = False
-        Settings.no_colorlog = True
-    else:
-        Settings.colorlog_supported = False
-        Settings.no_colorlog = False
 
+    # === Setup ===
+    # check if colorlog is installed
+    import importlib.util
+    Settings.colorlog_supported = \
+        importlib.util.find_spec("colorlog") is not None
+    Settings.no_colorlog = not Settings.colorlog_supported
+
+    # parse arguments
     parse_args()
+    # setup logger
     logger = setup_logger(Settings)
+    # setup progs
     Progs.setup(Settings)
+
+    # === Check which mode to run ===
+    # -- Interactive mode
     if Settings.interactive_mode:
         interactive.iconsole(Settings).cmdloop()
+
+    # -- List progs and exit
     elif Settings.list_progs:
         list_progs()
+
+    # -- Theme mode
     elif getattr(Settings, 'theme_file_path', None):
             # TODO: make it so that if the given filename/path isn't found,
             #       we look for it in the systhemer install dir or some
@@ -207,6 +244,8 @@ if __name__ == '__main__':
         # else:
         #     logger.critical('Error argument: \'path\' not specified!')
         #     exit(1)
+
+    # -- Pipeline mode
     else:
         # Pipeline mode...
         # NOTE: implement pipeline injection support...
