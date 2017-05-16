@@ -138,16 +138,18 @@ def parse_args():
     for arg_id, (_doc, _args, _kwargs) in args.items():
         if (arg_id not in conditions) or \
            (arg_id in conditions and conditions[arg_id]):
-            # # pretty print for debugging...
-            # # (UN)COMMENT TO TOGGLE
-            # # (since this is done before setting up the logging system...)
-            # ppa = ', '.join(['\'{}\''.format(a) for a in _args])
-            # ppas = ', '.join([
-            #     '{0}={1}{2}{1}'.format(a, "'" if type(v) is str else '', v)
-            #     for a, v in _kwargs.items()])
-            # print('parser.add_argument('
-            #       '{}, {}, dest={})'.format(ppa, ppas, arg_id))
-            # # finish pretty print...
+            # === pretty print for debugging...
+            # toggle do_pp to toggle pprinting
+            # (since this is done before setting up the logging system...)
+            do_pp = False
+            if do_pp:
+                ppa = ', '.join(['\'{}\''.format(a) for a in _args])
+                ppas = ', '.join([
+                    '{0}={1}{2}{1}'.format(a, "'" if type(v) is str else '', v)
+                    for a, v in _kwargs.items()])
+                print('parser.add_argument('
+                      '{}, {}, dest={})'.format(ppa, ppas, arg_id))
+            # === finish pretty print...
 
             parser.add_argument(*_args, **_kwargs, help=_doc, dest=arg_id)
 
@@ -167,6 +169,13 @@ def parse_args():
         Settings.verbosity = Settings.VDEBUG_LVL
     else:
         Settings.verbosity = logging.WARNING
+
+    # === Aliases for interal names ===
+    for o, r in real_dests.items():
+        ov = getattr(Settings, o, None)
+        setattr(Settings, r, ov)
+        if ov is not None:
+            delattr(Settings, o)
 
     # === log LVL names ===
     if Settings.no_truncate_log:
@@ -193,13 +202,6 @@ def parse_args():
                 logging.CRITICAL: 'CR',
             }
         }
-
-    # === Aliases for interal names ===
-    for o, r in real_dests.items():
-        ov = getattr(Settings, o, None)
-        setattr(Settings, r, ov)
-        if ov is not None:
-            delattr(Settings, o)
 
 
 def list_progs():

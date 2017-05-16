@@ -4,7 +4,7 @@ Every program definition must inherit from the :class:`ProgDef` class
 """
 import logging
 import re
-from .common import Rule, Section, utils
+from .common import Section, utils
 from . import common
 
 
@@ -257,45 +257,6 @@ class ProgDef(object):
             return None
 
         return rule_obj._set(key, value, _buffer, scope_range, exclude_ranges)
-        # # Construct a list of all matches of 'rule' in the proper scope that
-        # # aren't excluded by any of the rules in exclude_ranges
-        # print(rule_obj.rule)
-        # matches = []
-        # for m in re.finditer(rule_obj.rule,
-        #                      _buffer[scope_range[0]:scope_range[1]]):
-        #     excs = [self.is_excluded(r, (m.start()+scope_range[0],
-        #                                  m.end()+scope_range[0])) != 0
-        #             for r in exclude_ranges]
-        #     if not (True in excs):
-        #         matches.append(m)
-
-        # # matches = [m
-        # #            for m
-        # #            in re.finditer(rule_obj.rule,
-        # #                           _buffer[scope_range[0]:scope_range[1]])
-        # #            if not (True in [
-        # #                    self.is_excluded(r, (m.start()+scope_range[0],
-        # #                                         m.end()+scope_range[0])) != 0
-        # #                    for r in exclude_ranges
-        # #                    ])]
-
-        # # check if empty list
-        # if matches:
-        #     # for now, we only apply the value to the first key match
-        #     match = matches[0]
-        # else:
-        #     self.logger.warning('Found rule \'%s\' in program definition'
-        #                         ' but not in configuration file!',
-        #                         key)
-        #     return None
-
-        # # replace the value in the buffer and return it
-        # sub_id = rule_obj.keys[key]
-        # out_buffer = _buffer[:scope_range[0]+match.start(sub_id)] \
-        #     + value \
-        #     + _buffer[scope_range[0]+match.end(sub_id):]
-        # self.logger.debug('Value set: %s <- %s', key, value)
-        # return out_buffer
 
     def set(self, key, value, section):
         """Set `value` to `key`.

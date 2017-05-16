@@ -4,11 +4,11 @@ This module contains classes and functions for generating rules for
 searching and replacing text using regex.
 
 Classes:
-    * `ConfigElement` - Base class. Others derive from this one
-    * `RuleTree` - Tree containing `ConfigElement` objects
-    * `Rule` - A single rule defined using regex
-    * `RuleVLen` - Like `Rule` but of variable length
-    * `Section` - Section of file to isolate from the rest
+    * :class:`ConfigElement` - Base class. Others derive from this one
+    * :class:`RuleTree` - Tree containing `ConfigElement` objects
+    * :class:`Rule` - A single rule defined using regex
+    * :class:`RuleVLen` - Like `Rule` but of variable length
+    * :class:`Section` - Section of file to isolate from the rest
 """
 
 
@@ -33,14 +33,15 @@ class utils(object):
     def is_excluded(exclude_rule, check_range):
         """ Check if the given range is within the exclude rule.
 
-        * `exclude_rule`: (depth, startpos, endpos)
-        * `check_range`:  (startpos, endpos)
+        :param tuple exclude_rule: (depth, startpos, endpos)
+        :param tuple check_range:  (startpos, endpos)
 
-        Returns:
+        :return:
+            * **1** if range is completely in the exclude range
 
-        * **1** if range is completely in the exclude range
-        * **2** if range is partially in the exclude range
-        * **0** if range is not at all in the exclude range
+            * **2** if range is partially in the exclude range
+
+            * **0** if range is not at all in the exclude range
         """
         if check_range[0] > check_range[1]:
             logger = logging.getLogger('Systhemer.common.utils')
@@ -92,16 +93,16 @@ class ConfigElement(object):
 
 
 class RuleTree(ConfigElement):
-    """Tree for any subclass of `ConfigElement`.
+    """Tree for any subclass of :class:`ConfigElement`.
 
     This class is used to build a tree for defining complex rules. It's
-    essentially possible to include itself, as `RuleTree` is also a
-    subclass of `ConfigElement`.
+    essentially possible to include itself, as :class:`RuleTree` is also a
+    subclass of :class:`ConfigElement`.
     """
     def __init__(self, *args):
         """Build the rule tree from `*args`.
 
-        * `*args` - Comma separated `ConfigElement` types
+        :param variadic args: - Comma separated :class:`ConfigElement` types
         """
 
         self.logger = logger
@@ -166,23 +167,26 @@ class RuleTree(ConfigElement):
 class Rule(ConfigElement):
     """A simple configuration line to search for.
 
-    This `Rule` only works if the line of the regex is fixed.
-    If not, use the `RuleVLen` class.
+    This :class:`Rule` only works if the line of the regex is fixed.
+    If not, use the :class:`RuleVLen` class.
     """
     def __init__(self, rule, keys):
-        """Build the `Rule` object.
+        """Build the :class:`Rule` object.
 
         Example::
 
             border_color 'foo' 'bar'
 
-        * `rule`: regex to search for
-                In this case:
+        :param str rule: regex to search for
+            In this case::
+
                 r'border_color' + r'([ \t]+(\S+))'*2
 
-        * `keys`: dictionary specifying what to set in the config file
-                - Key: variable from global config file to be used
-                - Value: number specifying the capture group
+        :param dict keys:
+            Dictionary specifying what to set in the config file:
+
+                * Key: variable from global config file to be used
+                * Value: number specifying the capture group
         """
         self.rule = rule
         # self.keys = keys
@@ -299,21 +303,26 @@ class RuleVLen(Rule):
 
             border_color 'foo' 'bar' 'baz'
 
-        * `rule`: regex to search for
-                In this case:
-                r'border_color(?:[ \t]+(\S+)){1,3}'
+        :param str rule: regex to search for
+            In this case::
 
-                In this case, the capture group '(\S+)' can be
-                captured many times (from 1 to 3 times)
+                r'border_color(?:[ \\t]+(\S+)){1,3}'
 
-        * `keys`: dictionary specifying what to set in the config file
-                - Key: variable from global config file to be used
-                - Value:
-                    - tuple of :
-                        - number specifying the capture group
-                        - number specifying the capture id of that group
-                        - string specifying default value
-                          (yes this is necessary)
+            In this case, the capture group ``'(\S+)'`` can be
+            captured many times (from 1 to 3 times)
+
+        :param dict keys:
+            Dictionary specifying what to set in the config file:
+
+            * **Key**: variable from global config file to be used
+            * **Value**:
+
+                * Tuple of:
+
+                    * number specifying the capture group
+                    * number specifying the capture id of that group
+                    * string specifying default value
+                      (yes this is necessary)
         """
         self.rule = rule
         self.keys = keys.keys()
@@ -346,7 +355,9 @@ class Section(ConfigElement):
            Keyword1, Keyword2
        }
 
-    "sub { }" is the subsection, to isolate the keywords
+    ``sub { }`` is the subsection, to isolate the keywords
+
+    this is necessary for Systhemer to understand scopes
     """
     def __init__(self, name, startchar, endchar, *rules,
                  separator=r'[ \t\n]*'):
@@ -360,11 +371,12 @@ class Section(ConfigElement):
                 foo, bar
             }
 
-        * name: 'sub_name'. Can be empty.
-        * startchar: '{'
-        * endchar: '}'
-        * *rules: same structure as a RuleTree, defined above
-        * separator: whatever is between sub_name and { (" " in this case)
+        :param str name: ``'sub_name'`` (Can be empty)
+        :param str startchar: ``'{'``
+        :param str endchar: ``'}'``
+        :param variadic \*rules: same structure as a RuleTree, defined above
+        :param str separator: whatever is between sub_name and
+            ``{`` (``' '`` in this case)
         """
 
         self.name = name

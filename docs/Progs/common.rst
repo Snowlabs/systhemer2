@@ -3,19 +3,26 @@
 -----------------
 .. automodule:: Progs.common
 
+.. autoclass:: utils
+    :members:
+
 .. autoclass:: ConfigElement
     :members:
 
 .. autoclass:: RuleTree
-    :members:
-
-.. autoclass:: Rule
-    :members:
-
-.. autoclass:: RuleVLen
+    :special-members:
     :members:
 
 .. autoclass:: Section
+    :special-members:
+    :members:
+
+.. autoclass:: Rule
+    :special-members:
+    :members:
+
+.. autoclass:: RuleVLen
+    :special-members:
     :members:
 
 .. _template:
