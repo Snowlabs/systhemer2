@@ -102,7 +102,7 @@ class RuleTree(ConfigElement):
     def __init__(self, *args):
         """Build the rule tree from `*args`.
 
-        :param variadic args: - Comma separated :class:`ConfigElement` types
+        :param variadic \*args: - Comma separated :class:`ConfigElement` types
         """
 
         self.logger = logger
