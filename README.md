@@ -21,53 +21,62 @@ extended for support for new programs by the community and for ease
 of sharing of user themes.
 
 Our goal is to make sharing system configurations to others easier than
-ever: just apply your `{theme-name}.toml` and BAM you're done!
+ever: just apply your `{theme-name}.ini` and BAM you're done!
 
 ## Usage
 Here's what `systhemer -h` will tell you:
 ```
-usage: systhemer [-h] [-v] [-nc] path
+usage: systhemer [-h] [-i] [-v] [-l] [-d] [-D] [-n] [--VDEBUG_LVL VDEBUG_LVL]
+                 [-f PATH] [-nc] [-nt]
 
 Systhemer: System themingutility designed for ease of sharing
 
-positional arguments:
-  path                path to theme file
-
 optional arguments:
-  -h, --help          show this help message and exit
-  -v, --verbose       set level of verbosity
-  -nc, --no-colorlog  disable colorlog
-
+  -h, --help            show this help message and exit
+  -i, --interactive     run Systhemer in interactive mode
+  -v, --verbose         set level of verbosity
+  -l, --list            list supported programs
+  -d, --diff            generate diff before saving output file
+  -D, --alt-diff        alternative diff format (use with --diff)
+  -n, --no-save         don't save file (useful for debugging and for use with
+                        --diff)
+  --VDEBUG_LVL VDEBUG_LVL
+                        set VDEBUG_LVL
+  -f PATH, --file PATH  path to theme file
+  -nc, --no-colors      disable colors
+  -nt, --no-truncate-log
+                        disable single-letter verbosity indicators
 ```
 
-Just run the program with the path to the theme to be apppied as the argument and you're done!
+Just run the program with `-f` followed by the path to the theme to be applied as the argument and you're done!
 
 ## Development Status:
 Systhemer is in early development and doesn't yet include all the feature that are planned for it.
 
 Things to do for a proper release, in order of priority starting from highest.
 
-| Feature | Status |
-| ------- | ------ |
-| Implement color formats for config rules | Done! |
+| Feature                                  | Status      |
+| ---------------------------------------- | ----------- |
+| Implement color formats for config rules | Done!       |
 | Restructure project for improved modularity | Not Started |
-| Add proper code documentation on RTD | WIP |
-| Refactor code for readability | WIP |
-| Backup existing config | Not Started |
-| Support for XML | Not Started |
+| Add proper code documentation on RTD     | WIP         |
+| Refactor code for readability            | WIP         |
+| Backup existing config                   | Not Started |
+| Support for XML                          | Not Started |
 
 Here are the program definitions which are currently planned for addition.
 
-| Feature | Status |
-|---------|--------|
-| OpenBox | Not Started |
+| Feature    | Status      |
+| ---------- | ----------- |
+| OpenBox    | Not Started |
 | Xresources | Not Started |
-| bspwm | Not Started |
-| rofi | Not Started |
+| bspwm      | Not Started |
+| rofi       | Not Started |
 
 Optional features planned for future versions.
 
-| Feature |
-| ------- |
-| Pipline injection |
-| Alternative backends |
+| Feature                                  |
+| :--------------------------------------- |
+| Pipline injection                        |
+| Alternative backends                     |
+| Optional package for generating program definitions from YAML files |
