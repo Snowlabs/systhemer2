@@ -8,7 +8,6 @@ class i3wm(ProgDef):
 
     def init(self):
         space = r'[ \t]+'
-        key = r'(\S+)'
         fmat = value.Color.Formatter(value.Color.formats.hexRRGGBB)
         def_val = '#ffffff'
         self.config = RuleTree(

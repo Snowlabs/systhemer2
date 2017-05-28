@@ -68,4 +68,5 @@ def setup_logger(Settings):
     logger.setLevel(Settings.VDEBUG)
     logger.addHandler(fileHandler)
     logger.addHandler(consHandler)
+
     return logger

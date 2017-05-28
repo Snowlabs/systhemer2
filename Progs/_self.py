@@ -7,10 +7,7 @@ import logging
 class _self(ProgDef):
     """describes self"""
     def __init__(self, Settings):
-        self.name = self.__class__.__name__
-        self.Settings = Settings
-        self.logger = logging.getLogger('Systhemer.Progs.' + self.name)
-        self.config = common.RuleTree()  # add definitions here
+        self.pre_init(Settings)
 
     def set(self, key, val, section):
         if section == 'self':

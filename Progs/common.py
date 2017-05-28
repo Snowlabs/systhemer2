@@ -43,17 +43,26 @@ class utils(object):
 
             * **0** if range is not at all in the exclude range
         """
+        # avoid nonsense (start > end) = nonsense
         if check_range[0] > check_range[1]:
             logger = logging.getLogger('Systhemer.common.utils')
             logger.critical('Range makes no sense!'
                             ' Startpos is bigger than endpos!')
             exit(1)
-        if (check_range[0] in range(exclude_rule[1], exclude_rule[2]+1)) and \
-           (check_range[1] in range(exclude_rule[1], exclude_rule[2]+1)):
+
+        exclude_range = range(exclude_rule[1], exclude_rule[2]+1)
+
+        # if range is completely within the exclude range
+        if (check_range[0] in exclude_range) and \
+           (check_range[1] in exclude_range):
             return 1
-        if (check_range[0] in range(exclude_rule[1], exclude_rule[2]+1)) or \
-           (check_range[1] in range(exclude_rule[1], exclude_rule[2]+1)):
+
+        # if range is partially within the exclude range
+        if (check_range[0] in exclude_range) or \
+           (check_range[1] in exclude_range):
             return 2
+
+        # if range is not in the exclude range at all
         return 0
 
 
@@ -63,16 +72,28 @@ class ConfigElement(object):
 
     def build_hierarchy_tree(self):
         """Generate hierarchy tree for Rule object.
+        gets parent tree and appends :class:`self` to it
         """
 
         assert isinstance(self.parent, ConfigElement) or self.parent is None
-        self.tree = [e for e in self.parent.get_tree()] if self.parent else []
+
+        self.tree = self.parent.get_tree()[:] if self.parent else []
         self.tree.append(self)
+
         logger.log(Settings.VDEBUG, 'tree generated: %s', self.tree)
+        logger.log(Settings.VDEBUG, 'simplified tree: %s',
+                   [e.__class__.__name__ for e in self.tree])
+
         return self.tree
 
     def get_tree(self, force_rebuild=False):
         """Generate hierarchy tree if needed and return it
+
+        Example::
+
+            [root, section_a, [...], section_b, rule]
+
+        where: root > section_a > [...] > section_b > rule
         """
         if self.tree:
             logger.debug('hierarchy tree already exists...')
@@ -236,8 +257,6 @@ class Rule(ConfigElement):
 
         scoped_buffer = _buffer[scope_range[0]:scope_range[1]]
 
-        stop = False
-
         for m in regex.finditer(self.rule_rgx, scoped_buffer):
             for r in exclude_ranges:
                 # check is range excludes match
@@ -258,7 +277,9 @@ class Rule(ConfigElement):
 
         # check if empty list
         try:
-            # for now, we only apply the value to the first key match
+            # for now, we only apply the value to the first key match.
+
+            # TODO: use all of `matches`
             match = matches[0]
         except IndexError:
             self.logger.warning('Found rule \'%s\' in program definition'

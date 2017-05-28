@@ -82,7 +82,7 @@ def run():
         # save theme for current program
         logger.info('Writing to config file for program: \'%s\'',
                     pd.get_name())
-        pd.save()
+        pd.do_save()
     # ==== theme applied
 
 
@@ -104,6 +104,21 @@ def parse_args():
             ['-l', '--list'],
             {'action': 'store_true'}
         ],
+        'show_diff': [
+            'generate diff before saving output file',
+            ['-d', '--diff'],
+            {'action': 'store_true'}
+        ],
+        'alt_diff': [
+            'alternative diff format (use with --diff)',
+            ['-D', '--alt-diff'],
+            {'action': 'store_true'}
+        ],
+        'no_save': [
+            "don't save file (useful for debugging and for use with --diff)",
+            ['-n', '--no-save'],
+            {'action': 'store_true'}
+        ],
         'VDEBUG_LVL': [
             'set VDEBUG_LVL',
             ['--VDEBUG_LVL'],
@@ -111,22 +126,23 @@ def parse_args():
         ],
         'path': [
             'path to theme file',
-            ['--file', '-f'],
+            ['-f', '--file'],
             {'action': 'store'}
         ],
         'no_colorlog': [
-            'disable colorlog',
-            ['--no-colorlog', '-nc'],
+            'disable colors',
+            ['-nc', '--no-colors'],
             {'action': 'store_true'}
         ],
         'no_truncate_log': [
             'disable single-letter verbosity indicators',
-            ['--no-truncate-log', '-nt'],
+            ['-nt', '--no-truncate-log'],
             {'action': 'store_true'}
         ],
     }
     real_dests = {
         'path': 'theme_file_path',
+        'VDEBUG_LVL': 'VDEBUG',
         # 'no_colorlog': 'nocolorlog'
     }
     conditions = {
@@ -139,8 +155,9 @@ def parse_args():
         if (arg_id not in conditions) or \
            (arg_id in conditions and conditions[arg_id]):
             # === pretty print for debugging...
-            # toggle do_pp to toggle pprinting
-            # (since this is done before setting up the logging system...)
+            # toggle do_pp to toggle pprinting (since this is done before
+            # setting up the logging system and before setting up argument
+            # parsing...)
             do_pp = False
             if do_pp:
                 ppa = ', '.join(['\'{}\''.format(a) for a in _args])
@@ -154,7 +171,7 @@ def parse_args():
             parser.add_argument(*_args, **_kwargs, help=_doc, dest=arg_id)
 
     parser.parse_args(namespace=Settings)
-    Settings.VDEBUG = Settings.VDEBUG_LVL
+    # Settings.VDEBUG = Settings.VDEBUG_LVL
 
     # === Verbosity ===
     # {nothing} : WARNING,
@@ -205,7 +222,6 @@ def parse_args():
 
 
 def list_progs():
-
     for p in Progs.prog_defs:
         if p.is_installed():
             print(p.get_name())

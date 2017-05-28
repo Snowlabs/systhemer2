@@ -19,8 +19,10 @@ class ProgDef(object):
     override the :meth:`set` method.
     """
 
-    def __init__(self, Settings, *args, **kwargs):
-        """Build a `ProgDef` object.
+    def pre_init(self, Settings):
+        """Pre-init defaults.
+        If you absolutely have to override __init__
+        then you must at least include pre_init in __init__.
         """
         self.name = self.__class__.__name__
         self.Settings = Settings
@@ -28,6 +30,17 @@ class ProgDef(object):
         self.filebuff = None
         self.config = common.RuleTree()  # add definitions here
         self.special_excludes = []
+        self.presave_hooks = []
+        self.postsave_hooks = []
+
+    def __init__(self, Settings, *args, **kwargs):
+        """Build a `ProgDef` object.
+        """
+        self.pre_init(Settings)
+
+        if self.Settings.show_diff:
+            self.presave_hooks.append(self.gen_diff)
+
         self.init(*args, **kwargs)
 
     def init(self):
@@ -92,20 +105,25 @@ class ProgDef(object):
         except IndexError:
             pass
 
+    def get_file_path(self):
+        """Get file path from Settings.
+        If not found there, get from default path."""
+
+        setting_name = self.name + '_file_path'
+        fallback = self.get_default_path()
+        msg = "File path for: '{}' not set! Please set a value for option: {}"
+        msg = msg.format(self.name, setting_name)
+
+        file_path = self.get_setting(setting_name, fallback,
+                                     msg=msg, critical=True)
+        return file_path
+
     def get_file_buffer(self):
         """Check if filebuffer exists. If not, one is created."""
         # if filebuffer doesn't exist
         if self.filebuff is None:
             # get file path from Settings if file is not foudn in default path
-            file_path = self.get_setting(self.name + '_file_path',
-                                         self.get_default_path(),
-                                         msg='File path for: \'%s\' not set!'
-                                         ' Please set a value for option: %s'
-                                         % (self.name,
-                                            self.name + '_file_path'),
-                                         critical=True)
-            if not file_path:
-                file_path = self.get_default_path()
+            file_path = self.get_file_path()
 
             with open(file_path) as configfile:
                 self.filebuff = configfile.read()
@@ -277,6 +295,82 @@ class ProgDef(object):
         # go through rules applying 'value' for 'key'
         for rule_obj in rules:
             self.filebuff = self._set(rule_obj, key, value, self.filebuff)
+
+    def gen_diff(self):
+        """Generate and print a diff of the change in config file."""
+
+        file_path = self.get_file_path()
+
+        with open(self.get_file_path()) as fbefore:
+            before = fbefore.read()
+        after = self.get_file_buffer()
+        import difflib
+
+        before = before.splitlines(keepends=True)
+        after = after.splitlines(keepends=True)
+
+        ffile = 'before '+file_path
+        tfile = 'after  '+file_path
+
+        if not self.get_setting('no_colorlog'):
+            esc = '\x1b[{}m'
+            red, green, cyan, none = 31, 32, 36, 0
+            reset = esc.format(0)
+        else:
+            esc = '{}'
+            red = green = cyan = none = ''
+            reset = ''
+
+        # === git-like diff ===
+        if not self.get_setting('alt_diff'):
+            for l in difflib.unified_diff(before, after,
+                                          fromfile=ffile, tofile=tfile):
+                his = {'+': green, '-': red, ' ': none, '@': cyan}
+                hi = esc.format(his[l[0]])
+                print('{hi}{line}'.format(hi=hi, line=l), end=reset)
+
+        # === alternative intuitive diff ===
+        else:
+            prev_line = ''
+            for l in difflib.ndiff(before, after):
+                if not prev_line:
+                    prev_line = l
+                    continue
+
+                his = {'+': green, '-': red, ' ': none, '?': cyan}
+                hi = esc.format(his[prev_line[0]])
+                if l[0] == '?':
+                    offset = 0
+                    lout = hi+prev_line[0]+reset
+                    prev_line = prev_line[1:]
+                    for m in re.finditer(r'(\^)+', l):
+                        lout += '{lb}{hi}{ch}{reset}'.format(
+                            lb=prev_line[offset:m.start()-1],
+                            ch=prev_line[m.start()-1:m.end()-1],
+                            hi=hi,
+                            reset=reset
+                        )
+                        offset = m.end()-1
+                    lout += prev_line[offset:]
+                    print(lout, end=reset)
+                else:
+                    print('{hi}{line}'.format(hi=hi, line=prev_line),
+                          end=reset)
+
+                prev_line = l
+
+    def do_save(self):
+        """Save the file and run pre/post-save hooks."""
+
+        # Pre-save
+        [h() for h in self.presave_hooks]
+
+        # save
+        if not self.get_setting('no_save'):
+            self.save()
+
+        # Post-save
+        [h() for h in self.postsave_hooks]
 
     def save(self):
         """Save the file.
