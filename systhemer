@@ -45,7 +45,7 @@ def run():
             val_type = None
             # val_type gets overriden in the order of prog_defs
             # loaded if there are many types defined
-            for pd in Progs.prog_defs:
+            for pd in Progs.installed_prog_defs:
                 val_type = pd.get_key_type(key)
 
             # val_type found...
@@ -66,7 +66,7 @@ def run():
     # ==== Apply theme
     logger.info('Applying theme')
     # loop though program definitions
-    for pd in Progs.prog_defs:
+    for pd in Progs.installed_prog_defs:
         # apply theme to curent program
         logger.info('Applying theme for program: \'%s\'',
                     pd.get_name())
@@ -117,6 +117,11 @@ def parse_args():
         'no_save': [
             "don't save file (useful for debugging and for use with --diff)",
             ['-n', '--no-save'],
+            {'action': 'store_true'}
+        ],
+        'make_backup': [
+            'save a backup (.bak) file',
+            ['-b', '--mk-backup'],
             {'action': 'store_true'}
         ],
         'VDEBUG_LVL': [
@@ -222,9 +227,7 @@ def parse_args():
 
 
 def list_progs():
-    for p in Progs.prog_defs:
-        if p.is_installed():
-            print(p.get_name())
+    [print(p.get_name()) for p in Progs.installed_prog_defs]
 
 
 if __name__ == '__main__':

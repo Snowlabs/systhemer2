@@ -1,6 +1,7 @@
 from .template import ProgDef
-from .common import RuleTree, Rule, RuleVLen, Section
+from .config import RuleTree, Rule, RuleVLen, Section
 from . import value
+from .common import utils
 
 
 class i3wm(ProgDef):
@@ -75,11 +76,10 @@ class i3wm(ProgDef):
         return False
 
     def get_default_path(self):
-        from . import common
         import os
         xdg_home = os.environ.get('XDG_CONFIG_HOME')
         dirs = [xdg_home + '/i3/config' if xdg_home else None,
-                common.get_home_dir() + '/.i3/config']
+                utils.get_home_dir() + '/.i3/config']
 
         for p in [d for d in dirs if d]:
             if os.path.isfile(p):
@@ -89,8 +89,8 @@ class i3wm(ProgDef):
 
     def save(self):  # saves in a new file for testing purposes
         """save file"""
-        outfile = self.get_setting('i3wm_out_file_path',
-                                   self.get_setting('i3wm_file_path'))
+        outfile = utils.get_setting('i3wm_out_file_path',
+                                    utils.get_setting('i3wm_file_path'))
         self.logger.info('Saving to %s...', outfile)
         with open(outfile, 'w') as newfile:
             newfile.write(self.get_file_buffer())

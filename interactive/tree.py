@@ -27,7 +27,7 @@ def tree(self, args):
 
 def recur(branch, sep_array, seps, elbow):
     print('%s%s─%s' % (''.join(sep_array), '└' if elbow else '├', branch))
-    if isinstance(branch, Progs.common.Section):
+    if isinstance(branch, Progs.config.Section):
         sep_array.append('  ' if elbow else '│ ')
         for i, b in enumerate(branch):
             if i == len(branch)-1:

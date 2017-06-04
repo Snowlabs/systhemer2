@@ -8,8 +8,10 @@ e.g. Color, Keybind, etc.
 """
 
 import itertools
-from enum import Enum
-from . import common
+# from enum import Enum
+# from . import common
+# from .common import utils
+from .common import utils
 import logging
 import regex as re
 
@@ -251,7 +253,7 @@ class Color(Value):
 
             # extract values from `color` string using generated regexpr
             match = re.search(color_format_re, string)
-            self.logger.log(common.Settings.VDEBUG, match.groupdict())
+            self.logger.log(utils.get_setting('VDEBUG'), match.groupdict())
 
             # construct out_obj Color object
             out_obj = Color()
@@ -264,7 +266,7 @@ class Color(Value):
                     attr_val = convert_fun(value)
 
                     out_obj[k] = attr_val  # set value to out_obj.{KEY}
-            self.logger.log(common.Settings.VDEBUG, out_obj)
+            self.logger.log(utils.get_setting('VDEBUG'), out_obj)
 
             if pipeline:
                 return PipelineableObject(self, out_obj)
@@ -286,7 +288,6 @@ class Color(Value):
                     fmat = Color.formats.floRGB
                 elif s[3:4] == '(':
                     fmat = Color.formats.decRGB
-
 
             if fmat:
                 return Color.Formatter(fmat)

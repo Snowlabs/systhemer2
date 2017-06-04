@@ -4,7 +4,8 @@ Every program definition must inherit from the :class:`ProgDef` class
 """
 import logging
 import re
-from .common import Section, utils
+from .common import utils
+from .config import RuleTree, Section
 from . import common
 
 
@@ -19,31 +20,32 @@ class ProgDef(object):
     override the :meth:`set` method.
     """
 
-    def pre_init(self, Settings):
+    def pre_init(self):
         """Pre-init defaults.
         If you absolutely have to override __init__
         then you must at least include pre_init in __init__.
         """
         self.name = self.__class__.__name__
-        self.Settings = Settings
         self.logger = logging.getLogger('Systhemer.Progs.' + self.name)
         self.filebuff = None
-        self.config = common.RuleTree()  # add definitions here
+        self.config = RuleTree()  # add definitions here
         self.special_excludes = []
         self.presave_hooks = []
         self.postsave_hooks = []
 
-    def __init__(self, Settings, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Build a `ProgDef` object.
         """
-        self.pre_init(Settings)
+        self.pre_init()
 
-        if self.Settings.show_diff:
+        if utils.get_setting('show_diff'):
             self.presave_hooks.append(self.gen_diff)
+        if utils.get_setting('make_backup'):
+            self.presave_hooks.append(self.mk_backup)
 
         self.init(*args, **kwargs)
 
-    def init(self):
+    def init(self, *args, **kwargs):
         """Define rules for configuration.
 
         This method must set the `self.config` variable, which must
@@ -84,21 +86,6 @@ class ProgDef(object):
         """
         return self.config
 
-    def get_setting(self, setting, default=None, critical=True, msg=None):
-        """Get a setting from self.Settings.
-        NOTE: probably should get moved to common module..."""
-        value = getattr(self.Settings, setting, None)
-        if value is None:
-            msg = msg if msg is not None else \
-                  'Setting \'%s\' not set!' % setting
-            if critical:
-                self.logger.critical(msg)
-                exit(1)
-            else:
-                self.logger.error(msg + ' Returning \'None\'.', setting)
-                return default
-        return value
-
     def get_key_type(self, key):
         try:
             return self.find_rules(key, self.config)[0].get_key_type(key)
@@ -114,8 +101,8 @@ class ProgDef(object):
         msg = "File path for: '{}' not set! Please set a value for option: {}"
         msg = msg.format(self.name, setting_name)
 
-        file_path = self.get_setting(setting_name, fallback,
-                                     msg=msg, critical=True)
+        file_path = utils.get_setting(setting_name, fallback,
+                                      msg=msg, critical=True)
         return file_path
 
     def get_file_buffer(self):
@@ -309,10 +296,10 @@ class ProgDef(object):
         before = before.splitlines(keepends=True)
         after = after.splitlines(keepends=True)
 
-        ffile = 'before '+file_path
-        tfile = 'after  '+file_path
+        ffile = file_path
+        tfile = file_path
 
-        if not self.get_setting('no_colorlog'):
+        if not utils.get_setting('no_colorlog'):
             esc = '\x1b[{}m'
             red, green, cyan, none = 31, 32, 36, 0
             reset = esc.format(0)
@@ -322,7 +309,7 @@ class ProgDef(object):
             reset = ''
 
         # === git-like diff ===
-        if not self.get_setting('alt_diff'):
+        if not utils.get_setting('alt_diff'):
             for l in difflib.unified_diff(before, after,
                                           fromfile=ffile, tofile=tfile):
                 his = {'+': green, '-': red, ' ': none, '@': cyan}
@@ -366,7 +353,7 @@ class ProgDef(object):
         [h() for h in self.presave_hooks]
 
         # save
-        if not self.get_setting('no_save'):
+        if not utils.get_setting('no_save'):
             self.save()
 
         # Post-save
