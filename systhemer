@@ -46,6 +46,9 @@ def run():
             # val_type gets overriden in the order of prog_defs
             # loaded if there are many types defined
             for pd in Progs.installed_prog_defs:
+                if pd.get_name() in Settings.excluded_progs:
+                    continue
+
                 val_type = pd.get_key_type(key)
 
             # val_type found...
@@ -67,9 +70,12 @@ def run():
     logger.info('Applying theme')
     # loop though program definitions
     for pd in Progs.installed_prog_defs:
+        if pd.get_name() in Settings.excluded_progs:
+            logger.info('Skipping blacklisted program: \'%s\'', pd.get_name())
+            continue
+
         # apply theme to curent program
-        logger.info('Applying theme for program: \'%s\'',
-                    pd.get_name())
+        logger.info('Applying theme for program: \'%s\'', pd.get_name())
 
         # loop through sections
         for section_id, section in values.items():
@@ -143,6 +149,11 @@ def parse_args():
             'disable single-letter verbosity indicators',
             ['-nt', '--no-truncate-log'],
             {'action': 'store_true'}
+        ],
+        'excluded_progs': [
+            'blacklist of excluded programs (comma separated)',
+            ['-!', '--blacklist'],
+            {'action': 'store'},
         ],
     }
     real_dests = {
@@ -224,6 +235,12 @@ def parse_args():
                 logging.CRITICAL: 'CR',
             }
         }
+
+    # === Program blacklist ===
+    blacklist = []
+    if getattr(Settings, 'excluded_progs', None):
+        blacklist = Settings.excluded_progs.split(',')
+    Settings.excluded_progs = blacklist
 
 
 def list_progs():
