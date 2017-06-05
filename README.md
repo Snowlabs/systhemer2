@@ -26,8 +26,9 @@ ever: just apply your `{theme-name}.ini` and BAM you're done!
 ## Usage
 Here's what `systhemer -h` will tell you:
 ```
-usage: systhemer [-h] [-i] [-v] [-l] [-d] [-D] [-n] [--VDEBUG_LVL VDEBUG_LVL]
-                 [-f PATH] [-nc] [-nt]
+usage: systhemer [-h] [-i] [-v] [-l] [-d] [-D] [-n] [-b]
+                 [--VDEBUG_LVL VDEBUG_LVL] [-f PATH] [-nc] [-nt]
+                 [-! EXCLUDED_PROGS]
 
 Systhemer: System themingutility designed for ease of sharing
 
@@ -40,12 +41,15 @@ optional arguments:
   -D, --alt-diff        alternative diff format (use with --diff)
   -n, --no-save         don't save file (useful for debugging and for use with
                         --diff)
+  -b, --mk-backup       save a backup (.bak) file
   --VDEBUG_LVL VDEBUG_LVL
                         set VDEBUG_LVL
   -f PATH, --file PATH  path to theme file
   -nc, --no-colors      disable colors
   -nt, --no-truncate-log
                         disable single-letter verbosity indicators
+  -! EXCLUDED_PROGS, --blacklist EXCLUDED_PROGS
+                        blacklist of excluded programs (comma separated)
 ```
 
 Just run the program with `-f` followed by the path to the theme to be applied as the argument and you're done!
