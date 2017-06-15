@@ -65,7 +65,7 @@ Things to do for a proper release, in order of priority starting from highest.
 | Restructure project for improved modularity | Not Started |
 | Add proper code documentation on RTD     | WIP         |
 | Refactor code for readability            | WIP         |
-| Backup existing config                   | Not Started |
+| Backup existing config                   | Done! |
 | Support for XML                          | Not Started |
 
 Here are the program definitions which are currently planned for addition.
