@@ -1,5 +1,6 @@
 # custom
 files/*.out
+files/*.bak
 
 # swap
 [._]*.s[a-v][a-z]

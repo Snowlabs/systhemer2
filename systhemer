@@ -86,7 +86,7 @@ def run():
                 pd.set(key, val, section_id)
 
         # save theme for current program
-        logger.info('Writing to config file for program: \'%s\'',
+        logger.info('Starting save jobs for program: \'%s\'',
                     pd.get_name())
         pd.do_save()
     # ==== theme applied

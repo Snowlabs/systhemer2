@@ -288,7 +288,7 @@ class ProgDef(object):
 
         file_path = self.get_file_path()
 
-        with open(self.get_file_path()) as fbefore:
+        with open(file_path) as fbefore:
             before = fbefore.read()
         after = self.get_file_buffer()
         import difflib
@@ -346,17 +346,30 @@ class ProgDef(object):
 
                 prev_line = l
 
+    def mk_backup(self):
+        """Save the old contents to a backup file"""
+        self.logger.info('Writing backup file for program: `%s`...',
+                         self.get_name())
+
+        file_path = self.get_file_path()
+
+        import shutil
+        shutil.copy(file_path, file_path+'.bak', follow_symlinks=True)
+
     def do_save(self):
         """Save the file and run pre/post-save hooks."""
 
         # Pre-save
+        self.logger.debug('Running pre-save hooks...')
         [h() for h in self.presave_hooks]
 
         # save
+        self.logger.debug('Saving to config file...')
         if not utils.get_setting('no_save'):
             self.save()
 
         # Post-save
+        self.logger.debug('Running post-save hooks...')
         [h() for h in self.postsave_hooks]
 
     def save(self):
